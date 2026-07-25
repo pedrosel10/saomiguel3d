@@ -24,9 +24,12 @@ export function setupUI({ camera, controls, lights, shadowFloorMat, modelState, 
     }
   };
 
-  // Esconder loader após carregar (mantém animação rodando por no mínimo 2.2s)
-  const hideLoader = () => {
-    if (!loaderScreen) return;
+  // Esconder loader após carregar e executar callback pós-transição
+  const hideLoader = (onComplete) => {
+    if (!loaderScreen) {
+      if (onComplete) onComplete();
+      return;
+    }
 
     // Estágios sequenciais das órbitas
     setTimeout(() => updateProgress(40), 500);
@@ -39,6 +42,11 @@ export function setupUI({ camera, controls, lights, shadowFloorMat, modelState, 
     setTimeout(() => {
       updateProgress(100);
       loaderScreen.classList.add('hidden');
+
+      // Disparar animações de entrada 3D no momento em que o loader começa a desaparecer
+      setTimeout(() => {
+        if (onComplete) onComplete();
+      }, 200);
     }, remainingTime);
   };
 

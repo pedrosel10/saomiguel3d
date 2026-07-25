@@ -368,8 +368,6 @@ export function setupCallouts(scene, camera, renderer, modelState) {
     return tl;
   }
 
-  animateIn();
-
   return { 
     update: updatePositions, 
     animateIn,

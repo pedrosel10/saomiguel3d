@@ -199,11 +199,16 @@ function init() {
         sparksEffect = setupSparks(scene, buildUniforms);
       }
 
-      // Executar Animações GSAP de Entrada (com construção holográfica e revelação de sombra)
-      setupAnimations(camera, lights, controls, buildUniforms, shadowFloorMat);
+      // Ocultar tela de carregamento e iniciar a sequência de animação 3D de entrada em seguida
+      ui.hideLoader(() => {
+        // Executar Animações GSAP de Entrada da Câmera, Holograma e Luzes
+        setupAnimations(camera, lights, controls, buildUniforms, shadowFloorMat);
 
-      // Ocultar tela de carregamento
-      ui.hideLoader();
+        // Revelar as Linhas 3D e os Cards HTML (animação de baixo para cima)
+        if (callouts) {
+          callouts.animateIn();
+        }
+      });
     },
     (error) => {
       console.error('Falha ao inicializar o modelo:', error);
