@@ -123,9 +123,9 @@ function init() {
       // Inicializar Sistema de Callout Diagrams saindo de trás do centro da engrenagem
       callouts = setupCallouts(scene, camera, renderer, modelState);
 
-      // Criar o Eixo 3D Central em cor #1A2BC2, ultrafino (50% mais fino) e elegante
-      const axisLength = 120; // Haste estendida no espaço 3D
-      const axisLineGeo = new THREE.CylinderGeometry(0.0025, 0.0025, axisLength, 12);
+      // Criar o Eixo 3D Central em cor #1A2BC2, ultrafino e elegante
+      const axisLength = 140; // Haste estendida no espaço 3D
+      const axisLineGeo = new THREE.CylinderGeometry(0.0018, 0.0018, axisLength, 16);
       axisLineGeo.rotateX(Math.PI / 2); // Orientar perfeitamente ao longo do eixo Z central
 
       const axisLineUniforms = {
@@ -136,17 +136,16 @@ function init() {
       const axisLineMat = new THREE.ShaderMaterial({
         uniforms: axisLineUniforms,
         transparent: true,
-        depthWrite: true,
+        depthWrite: false, // Previne descarte incorreto de z-buffer
         depthTest: true,
         vertexShader: `
           uniform float uTime;
           uniform float uBuildProgress;
-          varying float vT;
+          varying float vZ;
           varying vec3 vWorldPos;
           
           void main() {
-            // vT varia de -1.0 (extremidade 1) a +1.0 (extremidade 2), passando por 0.0 (centro)
-            vT = position.z / 60.0;
+            vZ = position.z;
             vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
           }
@@ -154,21 +153,12 @@ function init() {
         fragmentShader: `
           uniform float uTime;
           uniform float uBuildProgress;
-          varying float vT;
+          varying float vZ;
           varying vec3 vWorldPos;
           
-          // Função de ruído suave para fumaça/nuvens sutil
-          float hash(float n) { return fract(sin(n) * 43758.5453123); }
-          float noise(float x) {
-            float i = floor(x);
-            float f = fract(x);
-            float u = f * f * (3.0 - 2.0 * f);
-            return mix(hash(i), hash(i + 1.0), u);
-          }
-
           void main() {
-            // Distância normalizada a partir do centro (0.0 no centro, 1.0 nas pontas)
-            float distFromCenter = abs(vT);
+            // Distância normalizada a partir do centro (0.0 no centro, 1.0 nas pontas a 70u)
+            float distFromCenter = abs(vZ) / 70.0;
             
             // Revelação convergente durante a construção
             float threshold = 1.0 - uBuildProgress;
@@ -176,38 +166,30 @@ function init() {
               discard;
             }
 
-            // O laser verde de construção só brilha durante a revelação.
-            // Quando a revelação termina (uBuildProgress -> 1.0), o laser apaga 100%.
+            // Laser verde de construção
             float buildEndFade = smoothstep(1.0, 0.92, uBuildProgress);
             float edgeDist = abs(distFromCenter - threshold);
             float buildGlow = smoothstep(0.08, 0.0, edgeDist) * buildEndFade;
 
-            // Fade suave nas pontas externas estendidas (distFromCenter > 0.40)
-            float edgeFade = smoothstep(1.0, 0.40, distFromCenter);
+            // Fade suave nas pontas externas
+            float edgeFade = smoothstep(1.0, 0.45, distFromCenter);
             
-            float cloudAmount = smoothstep(0.85, 1.0, uBuildProgress);
+            // ANIMAÇÃO DE ONDA SUAVE (Quase desaparece nos vales ~5% e ressurge até 100% de opacidade)
+            // vZ * 0.85 cria ondas longas e uTime * 1.5 movimenta com velocidade reduzida
+            float rawWave = sin(vZ * 0.85 - uTime * 1.5) * 0.5 + 0.5; // Curva senoidal ultrassuave de 0.0 a 1.0
             
-            float cloudNoise1 = noise(vT * 8.0 + uTime * 0.45);
-            float cloudNoise2 = noise(vT * 16.0 - uTime * 0.25);
-            float rawCloud = smoothstep(0.32, 0.72, cloudNoise1 * 0.6 + cloudNoise2 * 0.4);
-            
-            // Suavização sutil por ruído (afeta apenas as extremidades externas)
-            float cloudMask = mix(1.0, rawCloud, cloudAmount * smoothstep(0.10, 0.45, distFromCenter));
+            // Gradiente continuo: nos vales a linha quase desaparece (5% opacidade) e nos picos atinge 100%
+            float waveOpacity = mix(0.05, 1.0, rawWave);
 
-            // Cor da linha: Azul Royal vibrante (Hex #1A2BC2)
+            // Cor 100% pura Azul Royal (Hex #1A2BC2) — sem nenhuma variação de cor
             vec3 axisColor = vec3(0.102, 0.169, 0.761);
-            
-            // Laser de construção
             vec3 activeBuildGreenGlow = vec3(0.0, 1.0, 0.55);
-
             vec3 finalColor = mix(axisColor, activeBuildGreenGlow, buildGlow * 1.5);
             
-            // Opacidade 100% SÓLIDA no centro do 3D para isolar a linha da iluminação interna,
-            // transicionando para opacidade sutil (0.65) conforme se afasta no espaço
-            float centerBlend = smoothstep(0.05, 0.35, distFromCenter);
-            float finalAlpha = mix(1.0, edgeFade * cloudMask * (0.65 + buildGlow * 0.35), centerBlend);
+            // Opacidade final modulada pelo gradiente suave
+            float finalAlpha = edgeFade * waveOpacity * (0.95 + buildGlow * 0.05);
 
-            if (finalAlpha < 0.015) discard;
+            if (finalAlpha < 0.02) discard;
 
             gl_FragColor = vec4(finalColor, finalAlpha);
           }

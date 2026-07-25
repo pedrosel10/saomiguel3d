@@ -26,8 +26,8 @@ export function setupCallouts(scene, camera, renderer, modelState) {
     const h = window.innerHeight;
     const isMobile = w <= 768 || (w / h) < 1.0;
 
-    // Posições verticais individuais calibradas (cards ~15% mais próximos no mobile)
-    let yFraction = data.isTop ? (isMobile ? 0.24 : 0.30) : (isMobile ? 0.76 : 0.70);
+    // Posições verticais individuais calibradas (cards ~40% mais próximos no desktop)
+    let yFraction = data.isTop ? (isMobile ? 0.24 : 0.38) : (isMobile ? 0.76 : 0.62);
 
     if (data.id === 'servicos') {
       yFraction += (isMobile ? 0.05 : 0.04); // Desce um pouco Serviço
