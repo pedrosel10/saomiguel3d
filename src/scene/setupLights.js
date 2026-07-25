@@ -26,7 +26,7 @@ export function setupLights(scene, renderer) {
   const keyLight = new THREE.DirectionalLight(0xffffff, 6.8);
   keyLight.position.set(4.0, 8.0, 6.0);
   keyLight.castShadow = true;
-  const shadowSize = window.innerWidth <= 768 ? 1024 : 2048;
+  const shadowSize = 2048;
   keyLight.shadow.mapSize.set(shadowSize, shadowSize);
   keyLight.shadow.bias = -0.01;
   keyLight.shadow.normalBias = 0;

@@ -52,12 +52,46 @@ function init() {
     pullState.xVelocity += event.deltaY * 0.00018;
   }, { passive: true });
 
-  // Rastreamento da posição do ponteiro do mouse
+  // Rastreamento da posição do ponteiro do mouse e gestos de touch no mobile
   const mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
+
   window.addEventListener('mousemove', (event) => {
     mouse.targetX = (event.clientX / window.innerWidth - 0.5) * 2;
     mouse.targetY = (event.clientY / window.innerHeight - 0.5) * 2;
   });
+
+  // Suporte a gestos Touch (deslizar o dedo altera o parallax e aciona o impulso mecânico)
+  let touchStartX = 0;
+  let touchStartY = 0;
+
+  window.addEventListener('touchstart', (event) => {
+    if (event.touches.length > 0) {
+      touchStartX = event.touches[0].clientX;
+      touchStartY = event.touches[0].clientY;
+
+      mouse.targetX = (touchStartX / window.innerWidth - 0.5) * 2;
+      mouse.targetY = (touchStartY / window.innerHeight - 0.5) * 2;
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (event) => {
+    if (event.touches.length > 0) {
+      const touchX = event.touches[0].clientX;
+      const touchY = event.touches[0].clientY;
+
+      const deltaY = touchY - touchStartY;
+
+      touchStartX = touchX;
+      touchStartY = touchY;
+
+      // Parallax 3D sutil ao mover o dedo
+      mouse.targetX = (touchX / window.innerWidth - 0.5) * 2;
+      mouse.targetY = (touchY / window.innerHeight - 0.5) * 2;
+
+      // Impulso mecânico no eixo pelo scroll de toque no mobile
+      pullState.xVelocity += deltaY * 0.00035;
+    }
+  }, { passive: true });
 
   // 4. Configurar Interface do Usuário (UI)
   const ui = setupUI({
@@ -221,7 +255,7 @@ function init() {
     updateResponsiveCamera(camera, scene, floor, shadowFloorMat);
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    const maxDPR = window.innerWidth <= 768 ? 1.5 : 2.0;
+    const maxDPR = window.innerWidth <= 768 ? 1.85 : 2.0;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDPR));
   });
 

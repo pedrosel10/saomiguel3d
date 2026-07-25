@@ -26,10 +26,10 @@ export function setupScene(canvas) {
     powerPreference: 'high-performance'
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  const maxDPR = window.innerWidth <= 768 ? 1.5 : 2.0;
+  const maxDPR = window.innerWidth <= 768 ? 1.85 : 2.0;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDPR));
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFShadowMap;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Sombras macias e de alta definição
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.45;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
