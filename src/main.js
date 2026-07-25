@@ -8,6 +8,7 @@ import { loadModel } from './scene/loadModel.js';
 import { setupAnimations } from './scene/setupAnimations.js';
 import { setupUI } from './ui/setupUI.js';
 import { setupSparks } from './effects/setupSparks.js';
+import { preloadSmoke } from './effects/landingSmoke.js';
 import { setupCallouts } from './ui/setupCallouts.js';
 
 function init() {
@@ -19,6 +20,9 @@ function init() {
 
   // 2. Configurar Iluminação HDRI e Luz Azul Interna
   const lights = setupLights(scene, renderer);
+
+  // 2b. Pré-carregar fumaça 3D (texturas + renderer + warm-up GPU) durante o loading
+  preloadSmoke();
 
   // 3. Câmera com posição 100% fixa (sem navegação de mouse/drag na câmera)
   const controls = new OrbitControls(camera, renderer.domElement);
