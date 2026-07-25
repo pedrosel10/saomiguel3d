@@ -12,9 +12,10 @@ export function setupScene(canvas) {
   const aspect = window.innerWidth / window.innerHeight;
   const camera = new THREE.PerspectiveCamera(26, aspect, 0.1, 200);
 
-  // Posição isométrica calibrada com 20% a mais de zoom (mais próxima do 3D)
+  // Posição inicial distante da câmera antes da animação de entrada
+  const START_POS = new THREE.Vector3(10.0, 8.8, 10.0);
   const ISOMETRIC_POS = new THREE.Vector3(6.0, 5.2, 6.0);
-  camera.position.copy(ISOMETRIC_POS);
+  camera.position.copy(START_POS);
   camera.lookAt(0, 0, 0);
 
   // 4. Renderer com ACESFilmic, PCFShadowMap e SRGBColorSpace conforme especificações

@@ -53,8 +53,8 @@ export function setupLights(scene, renderer) {
   rimLight.position.set(-13.2, -20.0, -17.0);
   scene.add(rimLight);
 
-  // 8. Luz Azul Interna
-  const blueInnerLight = new THREE.PointLight(0x0066ff, 150.0, 14, 1.2);
+  // 8. Luz Azul Interna (inicia apagada para a animação de acendimento)
+  const blueInnerLight = new THREE.PointLight(0x0066ff, 0.0, 14, 1.2);
   blueInnerLight.position.set(-0.7, -0.3, -0.1);
   blueInnerLight.castShadow = false;
   scene.add(blueInnerLight);

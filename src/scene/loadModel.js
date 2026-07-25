@@ -73,7 +73,7 @@ export function loadModel(scene, onProgress, onLoad, onError) {
       const worldBox = new THREE.Box3().setFromObject(pivotGroup);
 
       // Plano de corte nativo do Three.js para recortar tanto a malha visual quanto as sombras no chão
-      const clipPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), worldBox.min.y - 0.1);
+      const clipPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), worldBox.min.y - 0.2);
 
       // Parâmetros de construção holográfica vinculados ao plano de corte (com folga superior para término suave)
       const buildUniforms = {
