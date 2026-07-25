@@ -14,7 +14,7 @@ function init() {
   if (!canvas) return;
 
   // 1. Configurar Cena, Neblina, Chão e Câmera Isométrica
-  const { scene, camera, renderer, floor, shadowFloorMat, ISOMETRIC_POS, updateResponsiveCamera } = setupScene(canvas);
+  const { scene, camera, renderer, floor, shadowFloor, shadowFloorMat, ISOMETRIC_POS, updateResponsiveCamera } = setupScene(canvas);
 
   // 2. Configurar Iluminação HDRI e Luz Azul Interna
   const lights = setupLights(scene, renderer);
@@ -252,7 +252,7 @@ function init() {
 
   // 6. Redimensionamento de Tela Responsivo
   window.addEventListener('resize', () => {
-    updateResponsiveCamera(camera, scene, floor, shadowFloorMat);
+    updateResponsiveCamera(camera, scene, floor, shadowFloor);
 
     renderer.setSize(window.innerWidth, window.innerHeight);
     const maxDPR = window.innerWidth <= 768 ? 1.85 : 2.0;

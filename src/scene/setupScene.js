@@ -5,8 +5,8 @@ export function setupScene(canvas) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xfcfcfd);
 
-  // 2. Neblina sutil para profundidade de campo limpa
-  scene.fog = new THREE.FogExp2(0xfcfcfd, 0.015);
+  // 2. Neblina sutil para efeito de chão infinito dissolvendo no fundo
+  scene.fog = new THREE.Fog(0xfcfcfd, 11.0, 34.0);
 
   // 3. Câmera Isométrica focada perfeitamente no centro (0, 0, 0)
   const aspect = window.innerWidth / window.innerHeight;
@@ -37,7 +37,7 @@ export function setupScene(canvas) {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.localClippingEnabled = true;
 
-  // 5. Chão com a textura_projeto.webp e textura tátil de micro-granulação (paper/concrete grain)
+  // 5. Chão com a textura_projeto.webp (em escala reduzida) e textura tátil de micro-granulação
   const noiseTexture = createNoiseBumpTexture();
 
   const textureLoader = new THREE.TextureLoader();
@@ -45,11 +45,11 @@ export function setupScene(canvas) {
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.wrapS = THREE.RepeatWrapping;
     tex.wrapT = THREE.RepeatWrapping;
-    tex.repeat.set(6, 6); // Escala para linhas do blueprint bem definidas
+    tex.repeat.set(150, 150); // Escala bem menor para os detalhes do projeto caberem harmoniosamente
     tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
   });
 
-  const planeGeo = new THREE.PlaneGeometry(120, 120);
+  const planeGeo = new THREE.PlaneGeometry(600, 600); // Dimensão estendida para garantia de horizonte infinito
   const planeMat = new THREE.MeshStandardMaterial({
     map: floorTexture,
     bumpMap: noiseTexture, // Textura tátil sutil para o papel do estúdio não parecer plástico liso
@@ -70,19 +70,19 @@ export function setupScene(canvas) {
 
   // Plano receptor de sombras de alta definição
   const shadowFloorMat = new THREE.ShadowMaterial({ opacity: 0.32 });
-  const shadowFloor = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), shadowFloorMat);
+  const shadowFloor = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), shadowFloorMat);
   shadowFloor.rotation.x = -Math.PI / 2;
   shadowFloor.position.y = -1.74;
   shadowFloor.receiveShadow = true;
   scene.add(shadowFloor);
 
   // 6. Atualização responsiva da câmera, neblina e chão para mobile
-  updateResponsiveCamera(camera, scene, floor, shadowFloorMat);
+  updateResponsiveCamera(camera, scene, floor, shadowFloor);
 
-  return { scene, camera, renderer, floor, shadowFloorMat, ISOMETRIC_POS, updateResponsiveCamera };
+  return { scene, camera, renderer, floor, shadowFloor, shadowFloorMat, ISOMETRIC_POS, updateResponsiveCamera };
 }
 
-export function updateResponsiveCamera(camera, scene, floor, shadowFloorMat) {
+export function updateResponsiveCamera(camera, scene, floor, shadowFloor) {
   const aspect = window.innerWidth / window.innerHeight;
   camera.aspect = aspect;
 
@@ -107,10 +107,18 @@ export function updateResponsiveCamera(camera, scene, floor, shadowFloorMat) {
         floor.material.color.setHex(0xffffff);
       }
     }
+    if (shadowFloor) {
+      shadowFloor.position.y = -2.44;
+    }
 
-    // Neblina suave branca calibrada no mobile
+    // Neblina suave calibrada no mobile para dissolver o chão infinitamente sem cortar a borda
     if (scene && scene.fog) {
-      scene.fog.density = 0.015;
+      if (scene.fog.isFog) {
+        scene.fog.near = 9.0;
+        scene.fog.far = 28.0;
+      } else {
+        scene.fog.density = 0.038;
+      }
     }
   } else {
     // No desktop: mantém o FOV padrão de 26°, posição isométrica original (6, 5.2, 6) e fundo branco
@@ -125,8 +133,16 @@ export function updateResponsiveCamera(camera, scene, floor, shadowFloorMat) {
         floor.material.color.setHex(0xffffff);
       }
     }
+    if (shadowFloor) {
+      shadowFloor.position.y = -1.74;
+    }
     if (scene && scene.fog) {
-      scene.fog.density = 0.015;
+      if (scene.fog.isFog) {
+        scene.fog.near = 11.0;
+        scene.fog.far = 34.0;
+      } else {
+        scene.fog.density = 0.032;
+      }
     }
   }
 
