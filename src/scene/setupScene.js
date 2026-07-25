@@ -95,6 +95,10 @@ export function updateResponsiveCamera(camera, scene, floor, shadowFloorMat) {
     const tanFOV = modelWidth3D / (2 * targetDistance * targetWidthFraction * aspect);
     camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(tanFOV));
 
+    // Centralização de precisão no mobile: compensa o ângulo isométrico para manter o elemento 3D 100% no centro da tela
+    camera.position.set(5.65, 5.2, 6.35);
+    camera.lookAt(0, 0, 0);
+
     // No mobile: chão branco limpo com textura de projeto visível
     if (floor) {
       floor.position.y = -2.45;
@@ -109,8 +113,11 @@ export function updateResponsiveCamera(camera, scene, floor, shadowFloorMat) {
       scene.fog.density = 0.015;
     }
   } else {
-    // No desktop: mantém o FOV padrão de 26°, fundo branco e neblina sutil
+    // No desktop: mantém o FOV padrão de 26°, posição isométrica original (6, 5.2, 6) e fundo branco
     camera.fov = 26;
+    camera.position.set(6.0, 5.2, 6.0);
+    camera.lookAt(0, 0, 0);
+
     if (floor) {
       floor.position.y = -1.75;
       if (floor.material) {
