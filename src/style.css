@@ -43,14 +43,14 @@ html, body {
   outline: none;
 }
 
-/* Tela de Carregamento Orbital - Cor #E5EAF6 & Elementos Pretos */
+/* Tela de Carregamento Orbital - Fundo Branco & Elementos Pretos */
 .loader-container.loader-orbital {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: #E5EAF6;
+  background-color: #ffffff;
   z-index: 100;
   display: flex;
   align-items: center;
