@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import gsap from 'gsap';
 
 import { setupScene } from './scene/setupScene.js';
 import { setupLights } from './scene/setupLights.js';
@@ -116,9 +117,9 @@ function init() {
       // Inicializar Sistema de Callout Diagrams saindo de trás do centro da engrenagem
       callouts = setupCallouts(scene, camera, renderer, modelState);
 
-      // Criar o Eixo 3D Central sutil, fino e preto elegante
+      // Criar o Eixo 3D Central em cor #1A2BC2, ultrafino (50% mais fino) e elegante
       const axisLength = 120; // Haste estendida no espaço 3D
-      const axisLineGeo = new THREE.CylinderGeometry(0.010, 0.010, axisLength, 12);
+      const axisLineGeo = new THREE.CylinderGeometry(0.0025, 0.0025, axisLength, 12);
       axisLineGeo.rotateX(Math.PI / 2); // Orientar perfeitamente ao longo do eixo Z central
 
       const axisLineUniforms = {
@@ -129,7 +130,8 @@ function init() {
       const axisLineMat = new THREE.ShaderMaterial({
         uniforms: axisLineUniforms,
         transparent: true,
-        depthWrite: false,
+        depthWrite: true,
+        depthTest: true,
         vertexShader: `
           uniform float uTime;
           uniform float uBuildProgress;
@@ -168,12 +170,14 @@ function init() {
               discard;
             }
 
-            // Laser holográfico na borda em movimento durante a revelação
+            // O laser verde de construção só brilha durante a revelação.
+            // Quando a revelação termina (uBuildProgress -> 1.0), o laser apaga 100%.
+            float buildEndFade = smoothstep(1.0, 0.92, uBuildProgress);
             float edgeDist = abs(distFromCenter - threshold);
-            float buildGlow = smoothstep(0.08, 0.0, edgeDist);
+            float buildGlow = smoothstep(0.08, 0.0, edgeDist) * buildEndFade;
 
-            // Fade suave nas pontas externas estendidas (transição no horizonte)
-            float edgeFade = smoothstep(1.0, 0.35, distFromCenter);
+            // Fade suave nas pontas externas estendidas (distFromCenter > 0.40)
+            float edgeFade = smoothstep(1.0, 0.40, distFromCenter);
             
             float cloudAmount = smoothstep(0.85, 1.0, uBuildProgress);
             
@@ -181,19 +185,21 @@ function init() {
             float cloudNoise2 = noise(vT * 16.0 - uTime * 0.25);
             float rawCloud = smoothstep(0.32, 0.72, cloudNoise1 * 0.6 + cloudNoise2 * 0.4);
             
-            // Suavização sutil
-            float cloudMask = mix(1.0, rawCloud, cloudAmount);
+            // Suavização sutil por ruído (afeta apenas as extremidades externas)
+            float cloudMask = mix(1.0, rawCloud, cloudAmount * smoothstep(0.10, 0.45, distFromCenter));
 
-            // Cor preta elegante e minimalista
-            vec3 blackAxisColor = vec3(0.04, 0.05, 0.07);
+            // Cor da linha: Azul Royal vibrante (Hex #1A2BC2)
+            vec3 axisColor = vec3(0.102, 0.169, 0.761);
             
             // Laser de construção
             vec3 activeBuildGreenGlow = vec3(0.0, 1.0, 0.55);
 
-            vec3 finalColor = mix(blackAxisColor, activeBuildGreenGlow, buildGlow * 1.5);
+            vec3 finalColor = mix(axisColor, activeBuildGreenGlow, buildGlow * 1.5);
             
-            // Opacidade sutil (0.38) para ser discreta e elegante
-            float finalAlpha = edgeFade * cloudMask * (0.38 + buildGlow * 0.35);
+            // Opacidade 100% SÓLIDA no centro do 3D para isolar a linha da iluminação interna,
+            // transicionando para opacidade sutil (0.65) conforme se afasta no espaço
+            float centerBlend = smoothstep(0.05, 0.35, distFromCenter);
+            float finalAlpha = mix(1.0, edgeFade * cloudMask * (0.65 + buildGlow * 0.35), centerBlend);
 
             if (finalAlpha < 0.015) discard;
 
