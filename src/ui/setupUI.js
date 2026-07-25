@@ -24,7 +24,7 @@ export function setupUI({ camera, controls, lights, shadowFloorMat, modelState, 
     }
   };
 
-  // Esconder loader após carregar e executar callback pós-transição
+  // Esconder loader após carregar e executar a animação de entrada 0.1s antes da saída do loader
   const hideLoader = (onComplete) => {
     if (!loaderScreen) {
       if (onComplete) onComplete();
@@ -39,14 +39,17 @@ export function setupUI({ camera, controls, lights, shadowFloorMat, modelState, 
     const elapsed = performance.now() - startTime;
     const remainingTime = Math.max(0, MIN_LOADER_DURATION - elapsed);
 
+    // Disparar animação de entrada 3D 0.1s (100ms) ANTES da saída do loader
+    const startAnimTime = Math.max(0, remainingTime - 100);
+
+    setTimeout(() => {
+      if (onComplete) onComplete();
+    }, startAnimTime);
+
+    // Desvanecer o loader 0.1s depois
     setTimeout(() => {
       updateProgress(100);
       loaderScreen.classList.add('hidden');
-
-      // Disparar animações de entrada 3D no momento em que o loader começa a desaparecer
-      setTimeout(() => {
-        if (onComplete) onComplete();
-      }, 200);
     }, remainingTime);
   };
 
