@@ -1,13 +1,13 @@
 :root {
   --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-display: 'Space Grotesk', sans-serif;
-  
+
   --color-bg: #ffffff;
   --color-text-main: #0f172a;
   --color-text-muted: #64748b;
   --color-accent-blue: #0066ff;
   --color-accent-blue-glow: rgba(0, 102, 255, 0.35);
-  
+
   --glass-bg: rgba(255, 255, 255, 0.72);
   --glass-border: rgba(226, 232, 240, 0.8);
   --glass-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.07), 0 0 20px rgba(0, 102, 255, 0.08);
@@ -23,7 +23,8 @@
   user-select: none;
 }
 
-html, body {
+html,
+body {
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -93,7 +94,8 @@ html, body {
 }
 
 .orbit-1 {
-  opacity: 1; /* Órbita 1 (1 ponto) ativa desde o início */
+  opacity: 1;
+  /* Órbita 1 (1 ponto) ativa desde o início */
   animation: spinOrbit 3.6s linear infinite;
 }
 
@@ -114,8 +116,13 @@ html, body {
 }
 
 @keyframes spinOrbit {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .orbit-path {
@@ -173,7 +180,7 @@ html, body {
   padding: 6px 14px;
   border-radius: 30px;
   border: 1px solid var(--glass-border);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
 .status-dot {
@@ -278,7 +285,7 @@ html, body {
 .btn.btn-active {
   background: #ffffff;
   color: var(--color-accent-blue);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
 .btn-secondary {
@@ -350,7 +357,7 @@ html, body {
   top: 3px;
   left: 3px;
   transition: transform 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .toggle-btn.active {
@@ -430,31 +437,38 @@ kbd {
     left: 16px;
     width: auto;
   }
+
   .header-hud {
     top: 16px;
     left: 16px;
   }
+
   .footer-hud {
     display: none;
   }
+
   /* Posicionamento dos cards compactos e travados a 10% da borda no mobile */
   .callout-left {
     transform: translate(0%, -50%) !important;
     margin-left: 0 !important;
   }
+
   .callout-right {
     transform: translate(-100%, -50%) !important;
     margin-left: 0 !important;
   }
+
   .callout-content-box {
     padding: 6px 14px !important;
     border-radius: 0px !important;
     border: none !important;
   }
+
   .callout-title {
     font-size: 0.76rem !important;
     letter-spacing: normal !important;
   }
+
   .callout-title .char.space {
     width: 0.25em !important;
   }
@@ -480,7 +494,8 @@ kbd {
   height: 100vh;
   pointer-events: none;
   overflow: visible;
-  z-index: 0; /* Linhas SVG 100% ATRÁS do Canvas 3D (z-index: 1) */
+  z-index: 0;
+  /* Linhas SVG 100% ATRÁS do Canvas 3D (z-index: 1) */
 }
 
 .callout-anchor-circle {
@@ -497,8 +512,15 @@ kbd {
 }
 
 @keyframes anchorPing {
-  0% { r: 4px; opacity: 1; }
-  100% { r: 16px; opacity: 0; }
+  0% {
+    r: 4px;
+    opacity: 1;
+  }
+
+  100% {
+    r: 16px;
+    opacity: 0;
+  }
 }
 
 .callout-path-bg {
@@ -516,7 +538,9 @@ kbd {
 }
 
 @keyframes lineDash {
-  to { stroke-dashoffset: -200; }
+  to {
+    stroke-dashoffset: -200;
+  }
 }
 
 .callouts-nodes-layer {
@@ -529,11 +553,13 @@ kbd {
 }
 
 .callout-card {
-  position: fixed;            /* Fixo na viewport */
+  position: fixed;
+  /* Fixo na viewport */
   pointer-events: auto;
   cursor: pointer;
   z-index: 15;
-  opacity: 0;                 /* Inicialmente oculto para a animação holográfica */
+  opacity: 0;
+  /* Inicialmente oculto para a animação holográfica */
 }
 
 /* Alinhamento dos cards com 10px de respiro (gap) da extremidade da linha */
@@ -550,18 +576,23 @@ kbd {
 .callout-content-box {
   position: relative;
   overflow: hidden;
-  background: #1A2BC2;            /* Preenchimento em Azul Royal #1A2BC2 */
+  background: #1A2BC2;
+  /* Preenchimento em Azul Royal #1A2BC2 */
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: none;                  /* Sem borda */
-  padding: 10px 22px;            /* Espaçamento interno ajustado ao texto 30% maior */
-  border-radius: 0px;            /* Bordas 100% retas (retangulares) */
+  border: none;
+  /* Sem borda */
+  padding: 10px 22px;
+  /* Espaçamento interno ajustado ao texto 30% maior */
+  border-radius: 0px;
+  /* Bordas 100% retas (retangulares) */
   box-shadow: 0 6px 20px rgba(26, 43, 194, 0.35);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   white-space: nowrap;
-  clip-path: inset(100% 0 0 0); /* Inicialmente mascarado 100% de baixo para cima */
+  clip-path: inset(100% 0 0 0);
+  /* Inicialmente mascarado 100% de baixo para cima */
   will-change: clip-path;
 }
 
@@ -569,7 +600,8 @@ kbd {
 .holo-scan-line {
   position: absolute;
   left: 0;
-  top: 100%;                   /* Posicionada na borda da varredura que sobe */
+  top: 100%;
+  /* Posicionada na borda da varredura que sobe */
   width: 100%;
   height: 2.5px;
   background: #ffffff;
@@ -584,11 +616,15 @@ kbd {
   position: relative;
   z-index: 3;
   font-family: 'Inria Serif', serif;
-  font-size: 1.10rem;          /* ~30% maior em relação a 0.85rem */
+  font-size: 1.10rem;
+  /* ~30% maior em relação a 0.85rem */
   font-weight: 700;
-  letter-spacing: normal;      /* Espaçamento normal das letras */
-  color: #ffffff;              /* Texto em branco puro sobre o fundo #1A2BC2 */
-  text-transform: none;        /* Primeira letra maiúscula e resto minúsculas */
+  letter-spacing: normal;
+  /* Espaçamento normal das letras */
+  color: #ffffff;
+  /* Texto em branco puro sobre o fundo #1A2BC2 */
+  text-transform: none;
+  /* Primeira letra maiúscula e resto minúsculas */
   margin: 0;
   line-height: 1;
   display: inline-flex;
@@ -628,7 +664,8 @@ kbd {
 
 @media (min-width: 769px) {
   .mobile-level-hud {
-    display: none !important; /* Visível estritamente no mobile */
+    display: none !important;
+    /* Visível estritamente no mobile */
   }
 }
 
@@ -645,28 +682,36 @@ kbd {
 .level-track-bar {
   position: relative;
   width: 100%;
-  height: 1px;                       /* Linha ultrafina de 1px */
-  background: rgba(51, 65, 85, 0.45);/* Cinza escuro discreto */
+  height: 1px;
+  /* Linha ultrafina de 1px */
+  background: rgba(51, 65, 85, 0.45);
+  /* Cinza escuro discreto */
   border-radius: 1px;
   overflow: visible;
 }
 
 .level-center-mark {
-  display: none;                      /* Removido para manter 100% minimalista: só o círculo e a barrinha */
+  display: none;
+  /* Removido para manter 100% minimalista: só o círculo e a barrinha */
 }
 
 .level-bubble-handle {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 7px;                         /* Pequeno círculo minimalista */
+  width: 7px;
+  /* Pequeno círculo minimalista */
   height: 7px;
-  background: #334155;                /* Tom cinza escuro */
-  border: none;                       /* Sem borda */
-  box-shadow: none;                   /* Sem sombra */
+  background: #334155;
+  /* Tom cinza escuro */
+  border: none;
+  /* Sem borda */
+  box-shadow: none;
+  /* Sem sombra */
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  transition: left 0.40s cubic-bezier(0.16, 1, 0.3, 1); /* Movimento suave com inércia */
+  transition: left 0.40s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Movimento suave com inércia */
   cursor: grab;
 }
 
@@ -690,7 +735,8 @@ kbd {
   font-family: 'Inter', sans-serif;
   font-size: 0.82rem;
   font-weight: 400;
-  color: #475569;               /* Tom cinza sofisticado e altamente legível */
+  color: #475569;
+  /* Tom cinza sofisticado e altamente legível */
   letter-spacing: -0.1px;
   margin: 0;
   line-height: 1.55;
@@ -699,7 +745,8 @@ kbd {
 /* Título H1 no Canto Inferior Direito */
 .footer-description {
   position: fixed;
-  bottom: 36px;                /* Posição original no canto inferior direito */
+  bottom: 36px;
+  /* Posição original no canto inferior direito */
   right: 36px;
   z-index: 20;
   pointer-events: none;
@@ -709,13 +756,16 @@ kbd {
 
 .crane-hook {
   position: absolute;
-  top: -1548px;                /* Projeção exata dos 2668px de altura da imagem para que o gancho toque o texto */
-  left: -5px;
-  width: 65px;                 /* Largura refinada */
+  top: -1505px;
+  /* Gancho posicionado acima do h1, parte inferior toca o topo do texto */
+  left: 25px;
+  width: 65px;
+  /* Largura refinada */
   height: auto;
   z-index: 25;
   pointer-events: none;
-  transform: translateY(-120vh); /* Inicialmente fora da tela no topo */
+  transform: translateY(-120vh);
+  /* Inicialmente fora da tela no topo */
   will-change: transform;
 }
 
@@ -723,18 +773,20 @@ kbd {
   width: 100%;
   height: auto;
   display: block;
-  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.22));
 }
 
 .brand-title {
   font-family: 'Inria Serif', serif;
-  font-size: 3.0rem;            /* Título monumental */
+  font-size: 3.0rem;
+  /* Título monumental */
   font-weight: 700;
-  color: #0f172a;               /* Tom escuro elegante e profissional */
+  color: #0f172a;
+  /* Tom escuro elegante e profissional */
   letter-spacing: -1.0px;
   margin: 0;
   line-height: 1.08;
-  transform: translateY(-120vh); /* Inicialmente fora da tela no topo junto ao gancho */
+  transform: translateY(-120vh);
+  /* Inicialmente fora da tela no topo junto ao gancho */
   will-change: transform;
 }
 
@@ -744,19 +796,23 @@ kbd {
     left: 20px;
     max-width: 230px;
   }
+
   .brand-subtitle {
     font-size: 0.65rem;
     line-height: 1.45;
   }
+
   .footer-description {
     bottom: 24px;
     right: 20px;
   }
+
   .crane-hook {
-    top: -1072px;
-    left: -4px;
+    top: -1042px;
+    left: 17px;
     width: 45px;
   }
+
   .brand-title {
     font-size: 1.85rem;
     line-height: 1.10;
@@ -778,9 +834,11 @@ kbd {
   font-family: 'Inter', sans-serif;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #1A2BC2;              /* Tom Azul Royal #1A2BC2 */
+  color: #1A2BC2;
+  /* Tom Azul Royal #1A2BC2 */
   text-transform: uppercase;
-  letter-spacing: 1.5px;      /* Espaçamento elegante de marca */
+  letter-spacing: 1.5px;
+  /* Espaçamento elegante de marca */
   margin: 0;
   line-height: 1;
 }
@@ -790,9 +848,9 @@ kbd {
     top: 24px;
     right: 20px;
   }
+
   .location-text {
     font-size: 0.70rem;
     letter-spacing: 1px;
   }
 }
-

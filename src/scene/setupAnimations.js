@@ -1,4 +1,5 @@
 import gsap from 'gsap';
+import { spawnSmoke3D } from '../effects/landingSmoke.js';
 
 export function setupAnimations(camera, lights, controls, buildUniforms, shadowFloorMat) {
   // Salva a posição isométrica final de destino calculada (para desktop ou mobile)
@@ -84,24 +85,30 @@ export function animateCraneHook() {
     ease: 'power3.out'
   });
 
-  // 2. Leve assentamento elástico ao desenganchar o texto no lugar exato
-  hookTl.to(title, {
-    y: 4,
-    duration: 0.14,
-    yoyo: true,
-    repeat: 1,
-    ease: 'sine.inOut'
+  // 2. Baixadinha sincronizada — gancho e h1 descem juntos imitando o descarregar do peso
+  hookTl.to([hook, title], {
+    y: 8,
+    duration: 0.18,
+    ease: 'power2.in',
+    onComplete: () => spawnSmoke3D(title)
   });
 
-  // 3. O Gancho solta o texto no lugar e sobe de volta para o topo da tela
+  // 3. Ambos sobem de volta ao lugar — o peso "assentou"
+  hookTl.to([hook, title], {
+    y: 0,
+    duration: 0.22,
+    ease: 'power2.out'
+  });
+
+  // 4. O Gancho solta o texto no lugar e sobe de volta para o topo da tela
   hookTl.to(hook, {
     y: '-120vh',
     duration: 1.4,
     ease: 'power2.in',
     onComplete: () => {
-      hook.style.display = 'none'; // Oculta o gancho após subir e sair da tela
+      hook.style.display = 'none';
     }
-  }, "+=0.12");
+  }, '+=0.10');
 
   return hookTl;
 }
