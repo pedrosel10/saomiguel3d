@@ -26,13 +26,13 @@ export function setupCallouts(scene, camera, renderer, modelState) {
     const h = window.innerHeight;
     const isMobile = w <= 768 || (w / h) < 1.0;
 
-    // Posições verticais individuais calibradas
-    let yFraction = data.isTop ? (isMobile ? 0.28 : 0.30) : (isMobile ? 0.72 : 0.70);
+    // Posições verticais individuais calibradas (cards ~15% mais próximos no mobile)
+    let yFraction = data.isTop ? (isMobile ? 0.24 : 0.30) : (isMobile ? 0.76 : 0.70);
 
     if (data.id === 'servicos') {
-      yFraction += (isMobile ? 0.05 : 0.04); // Desce um pouco NOSSOS SERVIÇOS
+      yFraction += (isMobile ? 0.05 : 0.04); // Desce um pouco Serviço
     } else if (data.id === 'cases') {
-      yFraction -= (isMobile ? 0.05 : 0.04); // Sobe um pouco CASES DE CLIENTES
+      yFraction -= (isMobile ? 0.05 : 0.04); // Sobe um pouco Clientes
     }
 
     const x = isMobile
