@@ -447,8 +447,8 @@ kbd {
     margin-left: 0 !important;
   }
   .callout-content-box {
-    padding: 3px 8px !important;
-    border-radius: 20px !important;
+    padding: 4px 10px !important;
+    border-radius: 0px !important;
   }
   .callout-title {
     font-size: 0.58rem !important;
@@ -535,10 +535,7 @@ kbd {
   opacity: 0;                 /* Inicialmente oculto para a animação holográfica */
 }
 
-/* Alinhamento dos cards com 10px de respiro (gap) da extremidade da linha:
-   - Cards da esquerda: empurrados 10px para a esquerda (margin-right: 10px)
-   - Cards da direita: empurrados 10px para a direita (margin-left: 10px)
-*/
+/* Alinhamento dos cards com 10px de respiro (gap) da extremidade da linha */
 .callout-left {
   transform: translate(-100%, -50%);
   margin-left: -10px;
@@ -552,13 +549,13 @@ kbd {
 .callout-content-box {
   position: relative;
   overflow: hidden;
-  background: rgba(232, 237, 245, 0.92); /* Tom azul/cinza suave translúcido */
+  background: #1A2BC2;            /* Preenchimento em Azul Royal #1A2BC2 */
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(51, 65, 85, 0.35); /* Borda cinza elegante */
+  border: 1px solid rgba(255, 255, 255, 0.3); /* Borda retilínea fina clara */
   padding: 8px 18px;
-  border-radius: 9999px;        /* Borda 100% arredondada (pill) */
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  border-radius: 0px;            /* Bordas 100% retas (retangulares) */
+  box-shadow: 0 4px 18px rgba(26, 43, 194, 0.35);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -574,8 +571,8 @@ kbd {
   top: 100%;                   /* Posicionada na borda da varredura que sobe */
   width: 100%;
   height: 2.5px;
-  background: #00f0ff;
-  box-shadow: 0 0 10px #00f0ff, 0 0 16px #0066ff;
+  background: #ffffff;
+  box-shadow: 0 0 10px #ffffff, 0 0 16px #00f0ff;
   opacity: 0;
   pointer-events: none;
   z-index: 10;
@@ -588,8 +585,8 @@ kbd {
   font-family: 'Inria Serif', serif;
   font-size: 0.85rem;
   font-weight: 700;
-  letter-spacing: 0.5px;
-  color: #0f172a;
+  letter-spacing: 1px;
+  color: #ffffff;              /* Texto em branco puro sobre o fundo #1A2BC2 */
   text-transform: uppercase;
   margin: 0;
   line-height: 1;
@@ -611,7 +608,7 @@ kbd {
 }
 
 .callout-title .char.holo-glow {
-  color: #0044cc;
-  text-shadow: 0 0 8px rgba(0, 198, 255, 0.8);
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.95);
 }
 
