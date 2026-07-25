@@ -35,7 +35,7 @@ export function setupScene(canvas) {
 
   // 5. Chão com a textura_projeto.webp e transição para neblina branca
   const textureLoader = new THREE.TextureLoader();
-  const floorTexture = textureLoader.load('/textura_projeto.webp', (tex) => {
+  const floorTexture = textureLoader.load('./textura_projeto.webp', (tex) => {
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.wrapS = THREE.RepeatWrapping;
     tex.wrapT = THREE.RepeatWrapping;

@@ -7,20 +7,20 @@ export function loadModel(scene, onProgress, onLoad, onError) {
 
   // Configurar DRACOLoader para descompactar o modelo GLB com Draco local
   const dracoLoader = new DRACOLoader();
-  dracoLoader.setDecoderPath('/draco/gltf/');
+  dracoLoader.setDecoderPath('./draco/gltf/');
   loader.setDRACOLoader(dracoLoader);
 
   // Carregar Texturas da Engrenagem segundo as especificações técnicas
   const textureLoader = new THREE.TextureLoader();
 
-  const baseColorMap = textureLoader.load('/obj3D/logo_basecolor.jpg');
+  const baseColorMap = textureLoader.load('./obj3D/logo_basecolor.jpg');
   baseColorMap.flipY = false;
   baseColorMap.colorSpace = THREE.SRGBColorSpace;
 
-  const normalMap = textureLoader.load('/obj3D/logo_normal.jpg');
+  const normalMap = textureLoader.load('./obj3D/logo_normal.jpg');
   normalMap.flipY = false;
 
-  const rmMap = textureLoader.load('/obj3D/logo_rm.jpg');
+  const rmMap = textureLoader.load('./obj3D/logo_rm.jpg');
   rmMap.flipY = false;
 
   // Material PBR da Engrenagem com Reflexos de Estúdio Intensificados
@@ -41,7 +41,7 @@ export function loadModel(scene, onProgress, onLoad, onError) {
   });
 
   loader.load(
-    '/obj3D/smlogo3d.glb',
+    './obj3D/smlogo3d.glb',
     (gltf) => {
       const model = gltf.scene;
 

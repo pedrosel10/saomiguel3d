@@ -14,7 +14,7 @@ function init() {
   if (!canvas) return;
 
   // 1. Configurar Cena, Neblina, Chão e Câmera Isométrica
-  const { scene, camera, renderer, floor, shadowFloorMat, ISOMETRIC_POS } = setupScene(canvas);
+  const { scene, camera, renderer, floor, shadowFloorMat, ISOMETRIC_POS, updateResponsiveCamera } = setupScene(canvas);
 
   // 2. Configurar Iluminação HDRI e Luz Azul Interna
   const lights = setupLights(scene, renderer);

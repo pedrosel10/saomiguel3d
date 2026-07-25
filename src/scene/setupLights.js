@@ -6,7 +6,7 @@ export function setupLights(scene, renderer) {
   const pmrem = new THREE.PMREMGenerator(renderer);
   pmrem.compileEquirectangularShader();
 
-  new RGBELoader().load('/obj3D/ferndale_studio_01_1k.hdr', (texture) => {
+  new RGBELoader().load('./obj3D/ferndale_studio_01_1k.hdr', (texture) => {
     texture.mapping = THREE.EquirectangularReflectionMapping;
     const envMap = pmrem.fromEquirectangular(texture).texture;
     scene.environment = envMap;
