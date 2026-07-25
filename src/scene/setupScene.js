@@ -87,16 +87,16 @@ export function updateResponsiveCamera(camera, scene, floor, shadowFloor) {
   camera.aspect = aspect;
 
   if (window.innerWidth <= 768 || aspect < 1.0) {
-    // No mobile: ajusta o FOV para o modelo ficar ~30% mais próximo (ocupando 78% da largura da tela)
-    const targetWidthFraction = 0.78;
+    // No mobile: ajusta o FOV para o modelo ficar ~10% mais próximo (ocupando 86% da largura da tela)
+    const targetWidthFraction = 0.86;
     const modelWidth3D = 3.5;
     const targetDistance = 9.95188; // Distância do ISOMETRIC_POS ao centro
 
     const tanFOV = modelWidth3D / (2 * targetDistance * targetWidthFraction * aspect);
     camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(tanFOV));
 
-    // Centralização de precisão no mobile: compensa o ângulo isométrico para manter o elemento 3D 100% no centro da tela
-    camera.position.set(5.65, 5.2, 6.35);
+    // Câmera no mobile: ajusta o enquadramento 2D para centralizar o 3D com margens iguais na esquerda e direita
+    camera.position.set(3.85, 4.68, 7.35);
     camera.lookAt(0, 0, 0);
 
     // No mobile: chão ajustado na base exata do modelo 3D (sem flutuar)
@@ -111,13 +111,13 @@ export function updateResponsiveCamera(camera, scene, floor, shadowFloor) {
       shadowFloor.position.y = -1.69;
     }
 
-    // Neblina suave calibrada no mobile para dissolver o chão infinitamente sem cortar a borda
+    // Neblina sutil empurrada mais para o fundo no mobile para revelar mais o chão
     if (scene && scene.fog) {
       if (scene.fog.isFog) {
-        scene.fog.near = 9.0;
-        scene.fog.far = 28.0;
+        scene.fog.near = 15.0;
+        scene.fog.far = 42.0;
       } else {
-        scene.fog.density = 0.038;
+        scene.fog.density = 0.020;
       }
     }
   } else {

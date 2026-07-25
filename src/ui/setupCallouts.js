@@ -344,24 +344,24 @@ export function setupCallouts(scene, camera, renderer, modelState) {
         }, cardStartTime + 0.60);
       }
 
-      // Fade In suave das letras do título durante a subida
+      // Fade In suave e cadenciado das letras do título (atrasado para surgir após a abertura do card)
       if (charElements.length > 0) {
         const shuffledChars = shuffleArray(charElements);
         
         tl.to(shuffledChars, {
           opacity: 1,
           y: 0,
-          duration: 0.08,
-          stagger: 0.03,
-          ease: 'power1.out',
+          duration: 0.38,
+          stagger: 0.05,
+          ease: 'power2.out',
           onStart: function() {
             const targetChar = this.targets ? this.targets()[0] : null;
             if (targetChar) {
               targetChar.classList.add('holo-glow');
-              setTimeout(() => targetChar.classList.remove('holo-glow'), 250);
+              setTimeout(() => targetChar.classList.remove('holo-glow'), 350);
             }
           }
-        }, cardStartTime + 0.12);
+        }, cardStartTime + 0.38);
       }
     });
 
