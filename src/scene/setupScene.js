@@ -64,7 +64,7 @@ export function setupScene(canvas) {
 
   const floor = new THREE.Mesh(planeGeo, planeMat);
   floor.rotation.x = -Math.PI / 2;
-  floor.position.y = -1.75; // Posicionado na base da engrenagem 3D
+  floor.position.y = -1.70; // Posicionado exatamente no contato da base da engrenagem 3D
   floor.receiveShadow = true;
   scene.add(floor);
 
@@ -72,7 +72,7 @@ export function setupScene(canvas) {
   const shadowFloorMat = new THREE.ShadowMaterial({ opacity: 0.32 });
   const shadowFloor = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), shadowFloorMat);
   shadowFloor.rotation.x = -Math.PI / 2;
-  shadowFloor.position.y = -1.74;
+  shadowFloor.position.y = -1.69;
   shadowFloor.receiveShadow = true;
   scene.add(shadowFloor);
 
@@ -99,16 +99,16 @@ export function updateResponsiveCamera(camera, scene, floor, shadowFloor) {
     camera.position.set(5.65, 5.2, 6.35);
     camera.lookAt(0, 0, 0);
 
-    // No mobile: chão branco limpo com textura de projeto visível
+    // No mobile: chão ajustado na base exata do modelo 3D (sem flutuar)
     if (floor) {
-      floor.position.y = -2.45;
+      floor.position.y = -1.70;
       if (floor.material) {
         floor.material.opacity = 0.92;
         floor.material.color.setHex(0xffffff);
       }
     }
     if (shadowFloor) {
-      shadowFloor.position.y = -2.44;
+      shadowFloor.position.y = -1.69;
     }
 
     // Neblina suave calibrada no mobile para dissolver o chão infinitamente sem cortar a borda
@@ -127,14 +127,14 @@ export function updateResponsiveCamera(camera, scene, floor, shadowFloor) {
     camera.lookAt(0, 0, 0);
 
     if (floor) {
-      floor.position.y = -1.75;
+      floor.position.y = -1.70;
       if (floor.material) {
         floor.material.opacity = 0.85;
         floor.material.color.setHex(0xffffff);
       }
     }
     if (shadowFloor) {
-      shadowFloor.position.y = -1.74;
+      shadowFloor.position.y = -1.69;
     }
     if (scene && scene.fog) {
       if (scene.fog.isFog) {
