@@ -23,19 +23,28 @@ export function loadModel(scene, onProgress, onLoad, onError) {
   const rmMap = textureLoader.load('./obj3D/logo_rm.jpg');
   rmMap.flipY = false;
 
-  // Material PBR da Engrenagem com Reflexos de Estúdio Intensificados
+  // Configuração de repetição para ranhuras finas de metal escovado (brushed metal)
+  normalMap.wrapS = THREE.RepeatWrapping;
+  normalMap.wrapT = THREE.RepeatWrapping;
+  normalMap.repeat.set(3, 3);
+
+  rmMap.wrapS = THREE.RepeatWrapping;
+  rmMap.wrapT = THREE.RepeatWrapping;
+  rmMap.repeat.set(3, 3);
+
+  // Material PBR da Engrenagem com Metal Escuro Profundo e Aspereza Micro-Texturizada
   const gearMaterial = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color('#0d3b85'),
+    color: new THREE.Color('#051b42'), // Tom de azul marinho profundo e denso
     map: baseColorMap,
     normalMap: normalMap,
-    normalScale: new THREE.Vector2(2.0, 2.0),
+    normalScale: new THREE.Vector2(2.0, 2.0), // Mantém a ranhura mas sem estourar o brilho
     roughnessMap: rmMap,
     metalnessMap: rmMap,
-    metalness: 1.0,
-    roughness: 0.18,
-    clearcoat: 1.0,
-    clearcoatRoughness: 0.0,
-    envMapIntensity: 2.8,
+    metalness: 0.98,
+    roughness: 0.30, // Equilíbrio perfeito entre textura tátil e profundidade de cor
+    clearcoat: 0.5,
+    clearcoatRoughness: 0.2,
+    envMapIntensity: 1.6, // Evita que a iluminação de estúdio esbanje/clareie o metal
     side: THREE.DoubleSide,
     shadowSide: THREE.DoubleSide
   });
