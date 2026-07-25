@@ -12,8 +12,8 @@ export function setupScene(canvas) {
   const aspect = window.innerWidth / window.innerHeight;
   const camera = new THREE.PerspectiveCamera(26, aspect, 0.1, 200);
 
-  // Posição inicial distante da câmera antes da animação de entrada
-  const START_POS = new THREE.Vector3(10.0, 8.8, 10.0);
+  // Posição inicial da câmera: de frente pro modelo 3D com visão vista de cima (0.0, 4.2, 9.5)
+  const START_POS = new THREE.Vector3(0.0, 4.2, 9.5);
   const ISOMETRIC_POS = new THREE.Vector3(6.0, 5.2, 6.0);
   camera.position.copy(START_POS);
   camera.lookAt(0, 0, 0);

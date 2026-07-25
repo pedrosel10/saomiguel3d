@@ -1,19 +1,27 @@
 import gsap from 'gsap';
 
 export function setupAnimations(camera, lights, controls, buildUniforms, shadowFloorMat) {
-  // 1. Animação de Entrada com GSAP (Zoom 20% mais próximo)
-  const targetPos = { x: 6.0, y: 5.2, z: 6.0 };
+  // Salva a posição isométrica final de destino calculada (para desktop ou mobile)
+  const targetPos = { x: camera.position.x, y: camera.position.y, z: camera.position.z };
+
+  // Inicia a câmera de frente pro modelo 3D com visão um pouco de cima (0.0, 4.2, 9.5)
+  camera.position.set(0.0, 4.2, 9.5);
+  camera.lookAt(0, 0, 0);
   controls.target.set(0, 0, 0);
 
   const introTimeline = gsap.timeline();
 
+  // Animação fluida da câmera girando e deslizando da frente para a perspectiva isométrica
   introTimeline.to(camera.position, {
     x: targetPos.x,
     y: targetPos.y,
     z: targetPos.z,
-    duration: 2.5,
-    ease: 'power3.out',
-    onUpdate: () => controls.update()
+    duration: 2.6,
+    ease: 'power3.inOut',
+    onUpdate: () => {
+      camera.lookAt(0, 0, 0);
+      controls.update();
+    }
   });
 
   // Animação de construção holográfica nativa
