@@ -94,6 +94,12 @@ function init() {
     }
   }, { passive: true });
 
+  // Listener para sincronizar a inclinação lateral 3D de forma extremamente suave quando o usuário desliza o nível no mobile
+  window.addEventListener('levelGaugeDrag', (event) => {
+    const { normalizedTarget } = event.detail;
+    mouse.targetX = normalizedTarget;
+  });
+
   // 4. Configurar Interface do Usuário (UI)
   const ui = setupUI({
     camera,
@@ -260,8 +266,8 @@ function init() {
 
     const delta = clock.getDelta();
 
-    // Rotação ultrasutil no eixo Y guiada pelo movimento do mouse
-    mouse.x += (mouse.targetX - mouse.x) * 0.015;
+    // Inclinação no eixo Y guiada de forma ultrassuave pelo movimento (lerp 8%)
+    mouse.x += (mouse.targetX - mouse.x) * 0.08;
 
     // Limite máximo de 30% de rotação (aprox ±0.33 rad / ~19 graus)
     const MAX_ROTATION_30_PERCENT = 0.33;
@@ -282,8 +288,8 @@ function init() {
 
     // O modelo permanece 100% FIXO no mesmo ponto do espaço, apenas GIRANDO no seu próprio eixo
     if (modelState.mesh) {
-      // Orientação sutil guiada pelo mouse no Y
-      modelState.mesh.rotation.y = mouse.x * Math.PI * 0.036;
+      // Orientação e inclinação lateral guiada de um lado para o outro
+      modelState.mesh.rotation.y = mouse.x * Math.PI * 0.065;
 
       // Rotação pura do disco no eixo Z em torno do próprio eixo central
       const rollAngle = pullState.xAngle * 1.5;
@@ -296,6 +302,11 @@ function init() {
     // Atualizar o deslocamento no eixo X do anel central no shader
     if (coreUniformsRef) {
       coreUniformsRef.uCoreRotationX.value = pullState.xAngle;
+    }
+
+    // Sincronizar em tempo real o indicador do Nível Minimalista com a inclinação 3D no mobile
+    if (ui && ui.updateLevelGauge) {
+      ui.updateLevelGauge(mouse.x);
     }
 
     // Atualizar tempo de animação da linha de eixo dinamica viva

@@ -261,5 +261,85 @@ ${JSON.stringify(configData, null, 2)}
     fMat.open();
   };
 
-  return { updateProgress, hideLoader, gui, bindMaterialControls };
+  // ==========================================
+  // Widget de Nível Minimalista (Canto Inferior Esquerdo - Mobile)
+  // ==========================================
+  let levelHud = document.getElementById('mobile-level-hud');
+  let levelHandle = null;
+  let levelTrack = null;
+
+  if (!levelHud) {
+    levelHud = document.createElement('div');
+    levelHud.id = 'mobile-level-hud';
+    levelHud.className = 'mobile-level-hud';
+    levelHud.innerHTML = `
+      <div class="level-track-wrapper" id="level-track-wrapper">
+        <div class="level-track-bar">
+          <div class="level-center-mark"></div>
+          <div class="level-bubble-handle" id="level-bubble-handle"></div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(levelHud);
+  }
+
+  levelHandle = document.getElementById('level-bubble-handle');
+  levelTrack = document.getElementById('level-track-wrapper');
+
+  let isDraggingLevel = false;
+
+  // Função para atualizar a posição da bolha sincronizada com a INCLINAÇÃO 3D (mouse.x)
+  const updateLevelGauge = (tiltNormalized) => {
+    if (!levelHandle || isDraggingLevel) return;
+    // Normalized [-1.0, 1.0] -> [0%, 100%]
+    const normalized = Math.max(-1.0, Math.min(1.0, tiltNormalized));
+    const percent = 50 + normalized * 50;
+    levelHandle.style.left = `${percent}%`;
+  };
+
+  // Interatividade: Deslizar a bolha do nível altera o ângulo do 3D em tempo real
+  if (levelTrack) {
+    const handlePointerMove = (clientX) => {
+      const rect = levelTrack.getBoundingClientRect();
+      const clickX = clientX - rect.left;
+      const rawFraction = clickX / rect.width; // 0.0 a 1.0
+      const normalizedTarget = Math.max(-1.0, Math.min(1.0, (rawFraction - 0.5) * 2));
+
+      if (levelHandle) {
+        const percent = 50 + normalizedTarget * 50;
+        levelHandle.style.left = `${percent}%`;
+      }
+
+      // Notificar o main.js para mover o 3D
+      window.dispatchEvent(new CustomEvent('levelGaugeDrag', { detail: { normalizedTarget } }));
+    };
+
+    levelTrack.addEventListener('pointerdown', (e) => {
+      isDraggingLevel = true;
+      try {
+        levelTrack.setPointerCapture(e.pointerId);
+      } catch (_) {}
+      handlePointerMove(e.clientX);
+    });
+
+    levelTrack.addEventListener('pointermove', (e) => {
+      if (isDraggingLevel) {
+        handlePointerMove(e.clientX);
+      }
+    });
+
+    const stopDrag = (e) => {
+      if (isDraggingLevel) {
+        isDraggingLevel = false;
+        try {
+          levelTrack.releasePointerCapture(e.pointerId);
+        } catch (_) {}
+      }
+    };
+
+    levelTrack.addEventListener('pointerup', stopDrag);
+    levelTrack.addEventListener('pointercancel', stopDrag);
+  }
+
+  return { updateProgress, hideLoader, gui, bindMaterialControls, updateLevelGauge };
 }
