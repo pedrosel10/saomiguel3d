@@ -26,7 +26,8 @@ export function setupScene(canvas) {
     powerPreference: 'high-performance'
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  const maxDPR = window.innerWidth <= 768 ? 1.5 : 2.0;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDPR));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
