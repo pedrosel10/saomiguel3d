@@ -6,6 +6,8 @@ export function setupUI({ camera, controls, lights, shadowFloorMat, modelState, 
   const progressBar = document.getElementById('progress-bar');
   const progressText = document.getElementById('progress-text');
 
+  const startTime = performance.now();
+
   // Atualizador de progresso da sequência Orbital
   const updateProgress = (percent) => {
     const orbit2 = document.getElementById('orbit-2');
@@ -22,13 +24,22 @@ export function setupUI({ camera, controls, lights, shadowFloorMat, modelState, 
     }
   };
 
-  // Esconder loader após carregar (desvanecer e revelar o site 3D)
+  // Esconder loader após carregar (mantém animação rodando por no mínimo 2.2s)
   const hideLoader = () => {
-    if (loaderScreen) {
-      setTimeout(() => {
-        loaderScreen.classList.add('hidden');
-      }, 400);
-    }
+    if (!loaderScreen) return;
+
+    // Estágios sequenciais das órbitas
+    setTimeout(() => updateProgress(40), 500);
+    setTimeout(() => updateProgress(75), 1100);
+
+    const MIN_LOADER_DURATION = 2200; // ~2.2 segundos para exibição completa
+    const elapsed = performance.now() - startTime;
+    const remainingTime = Math.max(0, MIN_LOADER_DURATION - elapsed);
+
+    setTimeout(() => {
+      updateProgress(100);
+      loaderScreen.classList.add('hidden');
+    }, remainingTime);
   };
 
   // (Preserva apenas funções essenciais do loader)
