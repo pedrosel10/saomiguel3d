@@ -4,10 +4,10 @@ import gsap from 'gsap';
 export function setupCallouts(scene, camera, renderer, modelState) {
   // 4 Tópicos do Menu — posições fixas em % da tela
   const calloutData = [
-    { id: 'equipe',  label: 'EQUIPE',   side: 'left',  isTop: true  },
-    { id: 'servicos',label: 'SERVIÇO',  side: 'right', isTop: true  },
-    { id: 'cases',   label: 'CLIENTES', side: 'left',  isTop: false },
-    { id: 'contato', label: 'CONTATO',  side: 'right', isTop: false },
+    { id: 'equipe',  label: 'Equipe',   side: 'left',  isTop: true  },
+    { id: 'servicos',label: 'Serviço',  side: 'right', isTop: true  },
+    { id: 'cases',   label: 'Clientes', side: 'left',  isTop: false },
+    { id: 'contato', label: 'Contato',  side: 'right', isTop: false },
   ];
 
   // Função auxiliar para embalar o texto em letras individuais (spans)

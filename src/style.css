@@ -447,12 +447,13 @@ kbd {
     margin-left: 0 !important;
   }
   .callout-content-box {
-    padding: 4px 10px !important;
+    padding: 6px 14px !important;
     border-radius: 0px !important;
+    border: none !important;
   }
   .callout-title {
-    font-size: 0.58rem !important;
-    letter-spacing: 0.2px !important;
+    font-size: 0.76rem !important;
+    letter-spacing: normal !important;
   }
   .callout-title .char.space {
     width: 0.25em !important;
@@ -552,10 +553,10 @@ kbd {
   background: #1A2BC2;            /* Preenchimento em Azul Royal #1A2BC2 */
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3); /* Borda retilínea fina clara */
-  padding: 8px 18px;
+  border: none;                  /* Sem borda */
+  padding: 10px 22px;            /* Espaçamento interno ajustado ao texto 30% maior */
   border-radius: 0px;            /* Bordas 100% retas (retangulares) */
-  box-shadow: 0 4px 18px rgba(26, 43, 194, 0.35);
+  box-shadow: 0 6px 20px rgba(26, 43, 194, 0.35);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -583,11 +584,11 @@ kbd {
   position: relative;
   z-index: 3;
   font-family: 'Inria Serif', serif;
-  font-size: 0.85rem;
+  font-size: 1.10rem;          /* ~30% maior em relação a 0.85rem */
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: normal;      /* Espaçamento normal das letras */
   color: #ffffff;              /* Texto em branco puro sobre o fundo #1A2BC2 */
-  text-transform: uppercase;
+  text-transform: none;        /* Primeira letra maiúscula e resto minúsculas */
   margin: 0;
   line-height: 1;
   display: inline-flex;
