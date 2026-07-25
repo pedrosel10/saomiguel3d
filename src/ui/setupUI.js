@@ -61,7 +61,7 @@ export function setupUI({ camera, controls, lights, shadowFloorMat, modelState, 
   const gui = new GUI({ title: '⚙️ Controle de Cena & Iluminação' });
   gui.domElement.style.top = '24px';
   gui.domElement.style.right = '24px';
-  gui.hide(); // Oculta a GUI por padrão
+  gui.hide(); // Oculta a GUI por padrão no build de produção
 
   // Função utilitária para registrar controller com botão de reset individual
   const addControllerWithReset = (folder, object, property, min, max, step, name, defaultValue) => {

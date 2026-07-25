@@ -172,13 +172,14 @@ export function loadModel(scene, onProgress, onLoad, onError) {
 
       gearMaterial.customDepthMaterial = customDepthMaterial;
 
-      // Aplicar material e habilitação de corte de sombra nativo em todas as malhas
+      // Aplicar material, corte de sombra e camada exclusiva de iluminação nas malhas
       pivotGroup.traverse((child) => {
         if (child.isMesh) {
           child.material = gearMaterial;
           child.customDepthMaterial = customDepthMaterial;
           child.castShadow = true;
           child.receiveShadow = true;
+          child.layers.enable(1); // Habilita o Layer 1 exclusivo da Luz Azul (afeta apenas o 3D, sem iluminar o chão)
         }
       });
 

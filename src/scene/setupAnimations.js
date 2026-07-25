@@ -43,10 +43,10 @@ export function setupAnimations(camera, lights, controls, buildUniforms, shadowF
     shadowFloorMat.opacity = 0.32;
   }
 
-  // Acendimento progressivo da luz azul interna (de 0 para 150)
+  // Acendimento progressivo da luz azul interna (de 0 para 136)
   if (lights.blueInnerLight) {
     introTimeline.to(lights.blueInnerLight, {
-      intensity: 150.0,
+      intensity: 136.0,
       duration: 1.8,
       ease: 'sine.inOut'
     }, "-=1.4");

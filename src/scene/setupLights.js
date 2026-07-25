@@ -23,7 +23,7 @@ export function setupLights(scene, renderer) {
   scene.add(hemiLight);
 
   // 4. Key Light
-  const keyLight = new THREE.DirectionalLight(0xffffff, 6.8);
+  const keyLight = new THREE.DirectionalLight(0xffffff, 0.0);
   keyLight.position.set(4.0, 8.0, 6.0);
   keyLight.castShadow = true;
   const shadowSize = 2048;
@@ -50,13 +50,13 @@ export function setupLights(scene, renderer) {
   scene.add(topLight);
 
   // 7. Rim Light
-  const rimLight = new THREE.DirectionalLight(0xbfdbfe, 10.0);
+  const rimLight = new THREE.DirectionalLight(0xbfdbfe, 0.7);
   rimLight.position.set(-13.2, -20.0, -17.0);
   scene.add(rimLight);
 
-  // 8. Luz Azul Interna (inicia apagada para a animação de acendimento)
-  const blueInnerLight = new THREE.PointLight(0x0066ff, 0.0, 14, 1.2);
-  blueInnerLight.position.set(-0.7, -0.3, -0.1);
+  // 8. Luz Azul Interna (Configuração personalizada pelo usuário)
+  const blueInnerLight = new THREE.PointLight(0x0066ff, 136.0, 1.5, 2.0);
+  blueInnerLight.position.set(-0.2, -0.1, -0.5);
   blueInnerLight.castShadow = false;
   scene.add(blueInnerLight);
 
