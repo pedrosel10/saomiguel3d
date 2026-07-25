@@ -43,14 +43,14 @@ html, body {
   outline: none;
 }
 
-/* Tela de Carregamento Orbital - Preto Minimalista */
+/* Tela de Carregamento Orbital - Cor #E5EAF6 & Elementos Pretos */
 .loader-container.loader-orbital {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: #05070a;
+  background-color: #E5EAF6;
   z-index: 100;
   display: flex;
   align-items: center;
@@ -120,14 +120,14 @@ html, body {
 
 .orbit-path {
   fill: none;
-  stroke: rgba(0, 102, 255, 0.22);
-  stroke-width: 1;
+  stroke: rgba(15, 23, 42, 0.28);
+  stroke-width: 1.2;
   stroke-dasharray: 4, 4;
 }
 
 .orbit-dot {
-  fill: #00f0ff;
-  filter: drop-shadow(0 0 6px #00f0ff) drop-shadow(0 0 12px #0066ff);
+  fill: #000000;
+  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.25));
 }
 
 /* Header HUD */
