@@ -553,7 +553,7 @@ ${JSON.stringify(f,null,2)}
 
         gl_FragColor = vec4(finalColor, finalAlpha);
       }
-    `}),p=new ue;p.name="CalloutLines3DGroup";const g=s.map(()=>{const m=new Le,_=new Float32Array(3*3);m.setAttribute("position",new J(_,3));const x=new Float32Array([0,.5,1]);m.setAttribute("aProgress",new J(x,1));const L=new wt(m,c);return p.add(L),{lineMesh:L,geo:m}});l.add(p);const y=new O,b=new O,A=new O,u=new O,f=new ze,w=new Ai,E=new B;function S(m=.016){if(!e||!t)return;d.uTime.value+=m;const _=window.innerWidth,x=window.innerHeight;i&&i.mesh?i.mesh.localToWorld(y.set(0,0,0)):y.set(0,0,0);const L=y.clone().project(e),D=(L.x*.5+.5)*_,I=(-L.y*.5+.5)*x;e.getWorldDirection(u),f.setFromNormalAndCoplanarPoint(u.negate(),y);function v(P,M,W){E.set(P/_*2-1,-(M/x)*2+1),w.setFromCamera(E,e),w.ray.intersectPlane(f,W)}h.forEach(({data:P,element:M},W)=>{const ae=_<=768||_/x<1,Z=P.side==="left",H=P.isTop;let se,F,G,te;if(ae&&M&&M.offsetWidth>0){const U=M.getBoundingClientRect();se=U.left+U.width/2,H?F=U.bottom+6:F=U.top-6;const ve=Z?P.id==="equipe"?-115:-90:110,Se=H?.15:.72;G=D+ve,te=I+(F-I)*Se}else if(ae){const U=n(P);se=Z?U.x+35:U.x-35,F=H?U.y+14:U.y-14;const ve=Z?P.id==="equipe"?-115:-90:110,Se=H?.15:.72;G=D+ve,te=I+(F-I)*Se}else{const U=n(P);se=U.x,F=U.y,G=D+(Z?-180:180),te=F}v(G,te,A),v(se,F,b);const Xe=y.distanceTo(A),Rt=A.distanceTo(b),We=Xe+Rt,Ct=We>0?Xe/We:.5,{geo:Ze}=g[W],ge=Ze.attributes.position;ge.setXYZ(0,y.x,y.y,y.z),ge.setXYZ(1,A.x,A.y,A.z),ge.setXYZ(2,b.x,b.y,b.z),ge.needsUpdate=!0;const _e=Ze.attributes.aProgress;_e.setX(0,0),_e.setX(1,Ct),_e.setX(2,1),_e.needsUpdate=!0})}function T(m){const _=[...m];for(let x=_.length-1;x>0;x--){const L=Math.floor(Math.random()*(x+1));[_[x],_[L]]=[_[L],_[x]]}return _}function C(){const m=Lt.timeline({delay:1});return m.to(d.uBuildProgress,{value:1,duration:1.8,ease:"power2.inOut"},0),h.forEach(({element:_},x)=>{const L=_.querySelector(".callout-content-box"),D=_.querySelector(".holo-scan-line"),I=Array.from(_.querySelectorAll(".callout-title .char:not(.space)"));_.style.opacity="1";const v=1.1+x*.18;if(L&&D){const P={progress:0};m.to(D,{opacity:1,duration:.08},v),m.to(P,{progress:100,duration:.7,ease:"power2.out",onUpdate:()=>{const M=100-P.progress;L.style.clipPath=`inset(${M}% 0 0 0)`,D.style.top=`${M}%`}},v),m.to(D,{opacity:0,duration:.25},v+.6)}if(I.length>0){const P=T(I);m.to(P,{opacity:1,y:0,duration:.08,stagger:.03,ease:"power1.out",onStart:function(){const M=this.targets?this.targets()[0]:null;M&&(M.classList.add("holo-glow"),setTimeout(()=>M.classList.remove("holo-glow"),250))}},v+.12)}}),m}return{update:S,animateIn:C,lineUniforms:d}}function Hs(){const l=document.getElementById("webgl-canvas");if(!l)return;const{scene:e,camera:t,renderer:i,floor:s,shadowFloor:o,shadowFloorMat:n,ISOMETRIC_POS:r,updateResponsiveCamera:a}=Oi(l),h=Bi(e,i),d=new xi(t,i.domElement);d.enableDamping=!0,d.dampingFactor=.05,d.enableRotate=!1,d.enablePan=!1,d.enableZoom=!1,d.target.set(0,0,0);const c={mesh:null};let p=null,g=null,y=null;const b={xVelocity:0,xAngle:0};window.addEventListener("wheel",T=>{b.xVelocity+=T.deltaY*18e-5},{passive:!0});const A={x:0,targetX:0,targetY:0};window.addEventListener("mousemove",T=>{A.targetX=(T.clientX/window.innerWidth-.5)*2,A.targetY=(T.clientY/window.innerHeight-.5)*2});let u=0,f=0;window.addEventListener("touchstart",T=>{T.touches.length>0&&(u=T.touches[0].clientX,f=T.touches[0].clientY,A.targetX=(u/window.innerWidth-.5)*2,A.targetY=(f/window.innerHeight-.5)*2)},{passive:!0}),window.addEventListener("touchmove",T=>{if(T.touches.length>0){const C=T.touches[0].clientX,m=T.touches[0].clientY,_=m-f;u=C,f=m,A.targetX=(C/window.innerWidth-.5)*2,A.targetY=(m/window.innerHeight-.5)*2,b.xVelocity+=_*35e-5}},{passive:!0});const w=Ns({camera:t,controls:d,lights:h,shadowFloorMat:n,modelState:c,defaultCameraPos:r});xs(e,T=>{w.updateProgress(T)},(T,C,m,_,x)=>{c.mesh=T,g=x,y=Bs(e,t,i,c);const L=120,D=new bi(.024,.024,L,16);D.rotateX(Math.PI/2);const I={uTime:{value:0},uBuildProgress:{value:0}},v=new Tt({uniforms:I,transparent:!0,depthWrite:!1,vertexShader:`
+    `}),p=new ue;p.name="CalloutLines3DGroup";const g=s.map(()=>{const m=new Le,_=new Float32Array(3*3);m.setAttribute("position",new J(_,3));const x=new Float32Array([0,.5,1]);m.setAttribute("aProgress",new J(x,1));const L=new wt(m,c);return p.add(L),{lineMesh:L,geo:m}});l.add(p);const y=new O,b=new O,A=new O,u=new O,f=new ze,w=new Ai,E=new B;function S(m=.016){if(!e||!t)return;d.uTime.value+=m;const _=window.innerWidth,x=window.innerHeight;i&&i.mesh?i.mesh.localToWorld(y.set(0,0,0)):y.set(0,0,0);const L=y.clone().project(e),D=(L.x*.5+.5)*_,I=(-L.y*.5+.5)*x;e.getWorldDirection(u),f.setFromNormalAndCoplanarPoint(u.negate(),y);function v(P,M,W){E.set(P/_*2-1,-(M/x)*2+1),w.setFromCamera(E,e),w.ray.intersectPlane(f,W)}h.forEach(({data:P,element:M},W)=>{const ae=_<=768||_/x<1,Z=P.side==="left",H=P.isTop;let se,F,G,te;if(ae&&M&&M.offsetWidth>0){const U=M.getBoundingClientRect();se=U.left+U.width/2,H?F=U.bottom+6:F=U.top-6;const ve=Z?P.id==="equipe"?-115:-90:110,Se=H?.15:.72;G=D+ve,te=I+(F-I)*Se}else if(ae){const U=n(P);se=Z?U.x+35:U.x-35,F=H?U.y+14:U.y-14;const ve=Z?P.id==="equipe"?-115:-90:110,Se=H?.15:.72;G=D+ve,te=I+(F-I)*Se}else{const U=n(P);se=U.x,F=U.y,G=D+(Z?-180:180),te=F}v(G,te,A),v(se,F,b);const Xe=y.distanceTo(A),Rt=A.distanceTo(b),We=Xe+Rt,Ct=We>0?Xe/We:.5,{geo:Ze}=g[W],ge=Ze.attributes.position;ge.setXYZ(0,y.x,y.y,y.z),ge.setXYZ(1,A.x,A.y,A.z),ge.setXYZ(2,b.x,b.y,b.z),ge.needsUpdate=!0;const _e=Ze.attributes.aProgress;_e.setX(0,0),_e.setX(1,Ct),_e.setX(2,1),_e.needsUpdate=!0})}function T(m){const _=[...m];for(let x=_.length-1;x>0;x--){const L=Math.floor(Math.random()*(x+1));[_[x],_[L]]=[_[L],_[x]]}return _}function C(){const m=Lt.timeline({delay:1});return m.to(d.uBuildProgress,{value:1,duration:1.8,ease:"power2.inOut"},0),h.forEach(({element:_},x)=>{const L=_.querySelector(".callout-content-box"),D=_.querySelector(".holo-scan-line"),I=Array.from(_.querySelectorAll(".callout-title .char:not(.space)"));_.style.opacity="1";const v=1.1+x*.18;if(L&&D){const P={progress:0};m.to(D,{opacity:1,duration:.08},v),m.to(P,{progress:100,duration:.7,ease:"power2.out",onUpdate:()=>{const M=100-P.progress;L.style.clipPath=`inset(${M}% 0 0 0)`,D.style.top=`${M}%`}},v),m.to(D,{opacity:0,duration:.25},v+.6)}if(I.length>0){const P=T(I);m.to(P,{opacity:1,y:0,duration:.08,stagger:.03,ease:"power1.out",onStart:function(){const M=this.targets?this.targets()[0]:null;M&&(M.classList.add("holo-glow"),setTimeout(()=>M.classList.remove("holo-glow"),250))}},v+.12)}}),m}return{update:S,animateIn:C,lineUniforms:d}}function Hs(){const l=document.getElementById("webgl-canvas");if(!l)return;const{scene:e,camera:t,renderer:i,floor:s,shadowFloor:o,shadowFloorMat:n,ISOMETRIC_POS:r,updateResponsiveCamera:a}=Oi(l),h=Bi(e,i),d=new xi(t,i.domElement);d.enableDamping=!0,d.dampingFactor=.05,d.enableRotate=!1,d.enablePan=!1,d.enableZoom=!1,d.target.set(0,0,0);const c={mesh:null};let p=null,g=null,y=null;const b={xVelocity:0,xAngle:0};window.addEventListener("wheel",T=>{b.xVelocity+=T.deltaY*18e-5},{passive:!0});const A={x:0,targetX:0,targetY:0};window.addEventListener("mousemove",T=>{A.targetX=(T.clientX/window.innerWidth-.5)*2,A.targetY=(T.clientY/window.innerHeight-.5)*2});let u=0,f=0;window.addEventListener("touchstart",T=>{T.touches.length>0&&(u=T.touches[0].clientX,f=T.touches[0].clientY,A.targetX=(u/window.innerWidth-.5)*2,A.targetY=(f/window.innerHeight-.5)*2)},{passive:!0}),window.addEventListener("touchmove",T=>{if(T.touches.length>0){const C=T.touches[0].clientX,m=T.touches[0].clientY,_=m-f;u=C,f=m,A.targetX=(C/window.innerWidth-.5)*2,A.targetY=(m/window.innerHeight-.5)*2,b.xVelocity+=_*35e-5}},{passive:!0});const w=Ns({camera:t,controls:d,lights:h,shadowFloorMat:n,modelState:c,defaultCameraPos:r});xs(e,T=>{w.updateProgress(T)},(T,C,m,_,x)=>{c.mesh=T,g=x,y=Bs(e,t,i,c);const L=120,D=new bi(.01,.01,L,12);D.rotateX(Math.PI/2);const I={uTime:{value:0},uBuildProgress:{value:0}},v=new Tt({uniforms:I,transparent:!0,depthWrite:!1,vertexShader:`
           uniform float uTime;
           uniform float uBuildProgress;
           varying float vT;
@@ -571,7 +571,7 @@ ${JSON.stringify(f,null,2)}
           varying float vT;
           varying vec3 vWorldPos;
           
-          // Função de ruído suave para varreção holográfica
+          // Função de ruído suave para fumaça/nuvens sutil
           float hash(float n) { return fract(sin(n) * 43758.5453123); }
           float noise(float x) {
             float i = floor(x);
@@ -590,37 +590,32 @@ ${JSON.stringify(f,null,2)}
               discard;
             }
 
-            // Laser holográfico ciano/verde na borda em movimento
+            // Laser holográfico na borda em movimento durante a revelação
             float edgeDist = abs(distFromCenter - threshold);
             float buildGlow = smoothstep(0.08, 0.0, edgeDist);
 
-            // Fade suave nas pontas externas estendidas (transição sutil no horizonte)
+            // Fade suave nas pontas externas estendidas (transição no horizonte)
             float edgeFade = smoothstep(1.0, 0.35, distFromCenter);
             
             float cloudAmount = smoothstep(0.85, 1.0, uBuildProgress);
             
             float cloudNoise1 = noise(vT * 8.0 + uTime * 0.45);
             float cloudNoise2 = noise(vT * 16.0 - uTime * 0.25);
-            float rawCloud = smoothstep(0.28, 0.75, cloudNoise1 * 0.6 + cloudNoise2 * 0.4);
+            float rawCloud = smoothstep(0.32, 0.72, cloudNoise1 * 0.6 + cloudNoise2 * 0.4);
             
-            // Máscara com alta densidade (mantém a linha bem evidente e definida)
-            float cloudMask = mix(1.0, 0.72 + 0.28 * rawCloud, cloudAmount);
+            // Suavização sutil
+            float cloudMask = mix(1.0, rawCloud, cloudAmount);
 
-            // Cor base do eixo: Grafite/Azul Marinho tecnológico bem nítido com pulsação ciano
-            vec3 darkAxisColor = vec3(0.05, 0.18, 0.45);
-            vec3 cyanPulseColor = vec3(0.0, 0.70, 1.0);
-
-            // Onda de energia holográfica deslizando pelo eixo central
-            float wave = sin(vT * 20.0 - uTime * 2.5) * 0.5 + 0.5;
-            vec3 baseAxisColor = mix(darkAxisColor, cyanPulseColor, wave * 0.35);
+            // Cor preta elegante e minimalista
+            vec3 blackAxisColor = vec3(0.04, 0.05, 0.07);
             
-            // Brilho verde neon apenas no laser ativo durante a construção
+            // Laser de construção
             vec3 activeBuildGreenGlow = vec3(0.0, 1.0, 0.55);
 
-            vec3 finalColor = mix(baseAxisColor, activeBuildGreenGlow, buildGlow * 1.5);
+            vec3 finalColor = mix(blackAxisColor, activeBuildGreenGlow, buildGlow * 1.5);
             
-            // Opacidade bem mais evidente (0.75 base) para destacar a linha central no modelo
-            float finalAlpha = edgeFade * cloudMask * (0.75 + buildGlow * 0.25);
+            // Opacidade sutil (0.38) para ser discreta e elegante
+            float finalAlpha = edgeFade * cloudMask * (0.38 + buildGlow * 0.35);
 
             if (finalAlpha < 0.015) discard;
 

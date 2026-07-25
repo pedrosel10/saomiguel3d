@@ -116,9 +116,9 @@ function init() {
       // Inicializar Sistema de Callout Diagrams saindo de trás do centro da engrenagem
       callouts = setupCallouts(scene, camera, renderer, modelState);
 
-      // Criar o Eixo 3D Central de alta visibilidade com espessura 3D, brilho técnico e pulsação
+      // Criar o Eixo 3D Central sutil, fino e preto elegante
       const axisLength = 120; // Haste estendida no espaço 3D
-      const axisLineGeo = new THREE.CylinderGeometry(0.024, 0.024, axisLength, 16);
+      const axisLineGeo = new THREE.CylinderGeometry(0.010, 0.010, axisLength, 12);
       axisLineGeo.rotateX(Math.PI / 2); // Orientar perfeitamente ao longo do eixo Z central
 
       const axisLineUniforms = {
@@ -149,7 +149,7 @@ function init() {
           varying float vT;
           varying vec3 vWorldPos;
           
-          // Função de ruído suave para varreção holográfica
+          // Função de ruído suave para fumaça/nuvens sutil
           float hash(float n) { return fract(sin(n) * 43758.5453123); }
           float noise(float x) {
             float i = floor(x);
@@ -168,37 +168,32 @@ function init() {
               discard;
             }
 
-            // Laser holográfico ciano/verde na borda em movimento
+            // Laser holográfico na borda em movimento durante a revelação
             float edgeDist = abs(distFromCenter - threshold);
             float buildGlow = smoothstep(0.08, 0.0, edgeDist);
 
-            // Fade suave nas pontas externas estendidas (transição sutil no horizonte)
+            // Fade suave nas pontas externas estendidas (transição no horizonte)
             float edgeFade = smoothstep(1.0, 0.35, distFromCenter);
             
             float cloudAmount = smoothstep(0.85, 1.0, uBuildProgress);
             
             float cloudNoise1 = noise(vT * 8.0 + uTime * 0.45);
             float cloudNoise2 = noise(vT * 16.0 - uTime * 0.25);
-            float rawCloud = smoothstep(0.28, 0.75, cloudNoise1 * 0.6 + cloudNoise2 * 0.4);
+            float rawCloud = smoothstep(0.32, 0.72, cloudNoise1 * 0.6 + cloudNoise2 * 0.4);
             
-            // Máscara com alta densidade (mantém a linha bem evidente e definida)
-            float cloudMask = mix(1.0, 0.72 + 0.28 * rawCloud, cloudAmount);
+            // Suavização sutil
+            float cloudMask = mix(1.0, rawCloud, cloudAmount);
 
-            // Cor base do eixo: Grafite/Azul Marinho tecnológico bem nítido com pulsação ciano
-            vec3 darkAxisColor = vec3(0.05, 0.18, 0.45);
-            vec3 cyanPulseColor = vec3(0.0, 0.70, 1.0);
-
-            // Onda de energia holográfica deslizando pelo eixo central
-            float wave = sin(vT * 20.0 - uTime * 2.5) * 0.5 + 0.5;
-            vec3 baseAxisColor = mix(darkAxisColor, cyanPulseColor, wave * 0.35);
+            // Cor preta elegante e minimalista
+            vec3 blackAxisColor = vec3(0.04, 0.05, 0.07);
             
-            // Brilho verde neon apenas no laser ativo durante a construção
+            // Laser de construção
             vec3 activeBuildGreenGlow = vec3(0.0, 1.0, 0.55);
 
-            vec3 finalColor = mix(baseAxisColor, activeBuildGreenGlow, buildGlow * 1.5);
+            vec3 finalColor = mix(blackAxisColor, activeBuildGreenGlow, buildGlow * 1.5);
             
-            // Opacidade bem mais evidente (0.75 base) para destacar a linha central no modelo
-            float finalAlpha = edgeFade * cloudMask * (0.75 + buildGlow * 0.25);
+            // Opacidade sutil (0.38) para ser discreta e elegante
+            float finalAlpha = edgeFade * cloudMask * (0.38 + buildGlow * 0.35);
 
             if (finalAlpha < 0.015) discard;
 
