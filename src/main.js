@@ -47,18 +47,28 @@ function init() {
   let skeletonUniformsRef = null;
   let callouts = null;
 
-  // Estado para as 2 engrenagens 3D emergentes no eixo central
+  // Estado para as engrenagens 3D emergentes no eixo central (3 no mobile, 5 no desktop)
   const extraGearsState = {
     gear1: null,
     gear2: null,
+    gear3: null,
+    gear4: null,
     active: false,
     isExiting: false,
     gear1Z: 0,
     gear2Z: 0,
+    gear3Z: 0,
+    gear4Z: 0,
     gear1Rotation: 0,
     gear2Rotation: 0,
+    gear3Rotation: 0,
+    gear4Rotation: 0,
     centralRotation: 0,
-    spinSpeed: 0
+    spinSpeed1: 0,
+    spinSpeed2: 0,
+    spinSpeed3: 0,
+    spinSpeed4: 0,
+    spinSpeedCentral: 0
   };
 
   // Objeto de Raycasting e estado de hover para a revelação do Raio-X do Esqueleto
@@ -263,7 +273,7 @@ function init() {
     }
   );
 
-  // Animação 3D das 2 engrenagens vindo de fora da tela pelo eixo Z central + Contrarrotação
+  // Animação 3D das engrenagens vindo de fora da tela pelo eixo Z central + Contrarrotação (3 no mobile, 5 no desktop)
   function triggerEquipeGearAnimation() {
     if (!modelState.mesh) return;
 
@@ -274,77 +284,127 @@ function init() {
       callouts.animateOut(0.0);
     }
 
-    if (!extraGearsState.gear1 || !extraGearsState.gear2) {
-      const meshSource = modelState.mesh.children[0] || modelState.mesh;
+    const meshSource = modelState.mesh.children[0] || modelState.mesh;
+
+    const createInnerBlueLight = () => {
+      const light = new THREE.PointLight(0x0066ff, 136.0, 1.5, 2.0);
+      light.position.set(-0.2, -0.1, -0.5);
+      light.castShadow = false;
+      return light;
+    };
+
+    if (!extraGearsState.gear1) {
       const g1 = new THREE.Group();
       g1.add(meshSource.clone(true));
+      g1.add(createInnerBlueLight());
+      if (isMobile) g1.traverse(child => { if (child.isMesh) { child.castShadow = false; child.receiveShadow = false; } });
+      g1.visible = false;
+      scene.add(g1);
+      extraGearsState.gear1 = g1;
+    }
 
+    if (!extraGearsState.gear2) {
       const g2 = new THREE.Group();
       g2.add(meshSource.clone(true));
-
-      // No mobile, desativar sombras extras nas engrenagens duplicadas para alta performance (60fps)
-      if (isMobile) {
-        g1.traverse(child => {
-          if (child.isMesh) {
-            child.castShadow = false;
-            child.receiveShadow = false;
-          }
-        });
-        g2.traverse(child => {
-          if (child.isMesh) {
-            child.castShadow = false;
-            child.receiveShadow = false;
-          }
-        });
-      }
-
-      g1.visible = false;
+      g2.add(createInnerBlueLight());
+      if (isMobile) g2.traverse(child => { if (child.isMesh) { child.castShadow = false; child.receiveShadow = false; } });
       g2.visible = false;
-
-      scene.add(g1);
       scene.add(g2);
-
-      extraGearsState.gear1 = g1;
       extraGearsState.gear2 = g2;
+    }
+
+    if (!isMobile) {
+      if (!extraGearsState.gear3) {
+        const g3 = new THREE.Group();
+        g3.add(meshSource.clone(true));
+        g3.add(createInnerBlueLight());
+        g3.visible = false;
+        scene.add(g3);
+        extraGearsState.gear3 = g3;
+      }
+      if (!extraGearsState.gear4) {
+        const g4 = new THREE.Group();
+        g4.add(meshSource.clone(true));
+        g4.add(createInnerBlueLight());
+        g4.visible = false;
+        scene.add(g4);
+        extraGearsState.gear4 = g4;
+      }
     }
 
     extraGearsState.active = true;
     extraGearsState.isExiting = false;
+
     extraGearsState.gear1.visible = true;
     extraGearsState.gear2.visible = true;
 
-    // Distâncias calibradas (no mobile, percurso Z mais compacto e responsivo)
-    const OFFSCREEN_FAR_Z = isMobile ? 14.0 : 35.0;
-    const TARGET_OFFSET_Z = isMobile ? 1.8 : 2.2;
+    if (!isMobile && extraGearsState.gear3 && extraGearsState.gear4) {
+      extraGearsState.gear3.visible = true;
+      extraGearsState.gear4.visible = true;
+    }
 
-    extraGearsState.gear1Z = OFFSCREEN_FAR_Z;
-    extraGearsState.gear2Z = -OFFSCREEN_FAR_Z;
-    extraGearsState.spinSpeed = 0;
+    // Distâncias calibradas com espaçamento amplo e elegante entre as 5 engrenagens no desktop
+    const OFFSCREEN_FAR_Z1 = isMobile ? 14.0 : 35.0;
+    const OFFSCREEN_FAR_Z2 = 55.0;
+    const TARGET_OFFSET_Z1 = isMobile ? 1.6 : 1.5; // Espaçamento calibrado (+1.5u)
+    const TARGET_OFFSET_Z2 = 3.0;                  // Espaçamento calibrado (+3.0u)
+
+    extraGearsState.gear1Z = OFFSCREEN_FAR_Z1;
+    extraGearsState.gear2Z = -OFFSCREEN_FAR_Z1;
+    extraGearsState.gear3Z = OFFSCREEN_FAR_Z2;
+    extraGearsState.gear4Z = -OFFSCREEN_FAR_Z2;
+
+    extraGearsState.spinSpeed1 = 0;
+    extraGearsState.spinSpeed2 = 0;
+    extraGearsState.spinSpeed3 = 0;
+    extraGearsState.spinSpeed4 = 0;
+    extraGearsState.spinSpeedCentral = 0;
 
     const tl = gsap.timeline();
 
-    // 1. As 2 engrenagens vem de fora da tela ao longo do eixo central Z e param próximo da engrenagem do centro
-    tl.to(extraGearsState, {
-      gear1Z: TARGET_OFFSET_Z,
-      gear2Z: -TARGET_OFFSET_Z,
-      duration: isMobile ? 1.1 : 1.6,
+    // 1. As engrenagens vem de fora da tela ao longo do eixo central Z e se posicionam estáticas no eixo
+    const animObj = {
+      gear1Z: TARGET_OFFSET_Z1,
+      gear2Z: -TARGET_OFFSET_Z1,
+      duration: isMobile ? 1.1 : 1.3,
       ease: 'power3.out'
-    }, 0);
+    };
 
-    // 2. Aceleram a rotação em sentidos opostos durante a aproximação
-    tl.to(extraGearsState, {
-      spinSpeed: isMobile ? 3.2 : 3.8,
-      duration: isMobile ? 1.2 : 1.8,
-      ease: 'power2.inOut'
-    }, 0.1);
+    if (!isMobile) {
+      animObj.gear3Z = TARGET_OFFSET_Z2;
+      animObj.gear4Z = -TARGET_OFFSET_Z2;
+    }
 
-    // 3. Após se posicionarem no centro e iniciarem a contrarrotação, dispara a subida da dobra
+    tl.to(extraGearsState, animObj, 0);
+
+    const TARGET_SPIN = isMobile ? 3.2 : 3.8;
+
+    // 2. EFEITO DE ONDA: Apenas APÓS chegarem e encaixarem na posição no eixo, inicia o movimento giratório em onda
+    if (isMobile) {
+      tl.to(extraGearsState, {
+        spinSpeed1: TARGET_SPIN,
+        spinSpeed2: TARGET_SPIN,
+        spinSpeedCentral: TARGET_SPIN,
+        duration: 1.2,
+        ease: 'power2.inOut'
+      }, 0.85);
+    } else {
+      // Onda sequencial cascateando do fundo para a frente APÓS o pouso estático no eixo (t = 1.25s)
+      const ARRIVAL_TIME = 1.25;
+      tl.to(extraGearsState, { spinSpeed4: TARGET_SPIN, duration: 1.2, ease: 'power2.out' }, ARRIVAL_TIME);
+      tl.to(extraGearsState, { spinSpeed2: TARGET_SPIN, duration: 1.2, ease: 'power2.out' }, ARRIVAL_TIME + 0.18);
+      tl.to(extraGearsState, { spinSpeedCentral: TARGET_SPIN, duration: 1.2, ease: 'power2.out' }, ARRIVAL_TIME + 0.36);
+      tl.to(extraGearsState, { spinSpeed1: TARGET_SPIN, duration: 1.2, ease: 'power2.out' }, ARRIVAL_TIME + 0.54);
+      tl.to(extraGearsState, { spinSpeed3: TARGET_SPIN, duration: 1.2, ease: 'power2.out' }, ARRIVAL_TIME + 0.72);
+    }
+
+    // 3. Após o movimento giratório em onda estar totalmente estabelecido, dispara a subida cadenciada da dobra
     tl.add(() => {
       animateFoldSlideUp();
-    }, isMobile ? 0.75 : 1.35);
+    }, isMobile ? 1.5 : 2.45);
   }
 
-  // Animação 3D de saída das 2 engrenagens voltando para fora da tela
+  // Animação 3D de saída das engrenagens voltando para fora da tela
   function triggerEquipeGearExitAnimation() {
     if (!extraGearsState.active || !extraGearsState.gear1 || !extraGearsState.gear2) {
       return;
@@ -357,7 +417,8 @@ function init() {
       callouts.animateIn(isMobile ? 0.2 : 0.5);
     }
 
-    const OFFSCREEN_FAR_Z = isMobile ? 14.0 : 35.0;
+    const OFFSCREEN_FAR_Z1 = isMobile ? 14.0 : 35.0;
+    const OFFSCREEN_FAR_Z2 = 55.0;
 
     // Calcular a próxima volta completa (múltiplo exato de 2 * PI) para a engrenagem central parar suavemente na posição inicial
     const TWO_PI = Math.PI * 2;
@@ -373,20 +434,33 @@ function init() {
         extraGearsState.centralRotation = 0;
         if (extraGearsState.gear1) extraGearsState.gear1.visible = false;
         if (extraGearsState.gear2) extraGearsState.gear2.visible = false;
+        if (extraGearsState.gear3) extraGearsState.gear3.visible = false;
+        if (extraGearsState.gear4) extraGearsState.gear4.visible = false;
       }
     });
 
-    // 1. As 2 engrenagens duplicadas voam de volta para fora da tela enquanto a dobra recolhe
-    tl.to(extraGearsState, {
-      gear1Z: OFFSCREEN_FAR_Z,
-      gear2Z: -OFFSCREEN_FAR_Z,
+    const exitObj = {
+      gear1Z: OFFSCREEN_FAR_Z1,
+      gear2Z: -OFFSCREEN_FAR_Z1,
       duration: isMobile ? 1.0 : 1.5,
       ease: 'power3.in'
-    }, isMobile ? 0.2 : 0.4);
+    };
 
-    // 2. A velocidade desacelera suavemente até parar e a engrenagem central conclui a volta completa (360°)
+    if (!isMobile) {
+      exitObj.gear3Z = OFFSCREEN_FAR_Z2;
+      exitObj.gear4Z = -OFFSCREEN_FAR_Z2;
+    }
+
+    // 1. As engrenagens duplicadas voam de volta para fora da tela enquanto a dobra recolhe
+    tl.to(extraGearsState, exitObj, isMobile ? 0.2 : 0.4);
+
+    // Desaceleração suave de todas as velocidades e alinhamento do centro na volta completa de 360°
     tl.to(extraGearsState, {
-      spinSpeed: 0,
+      spinSpeed1: 0,
+      spinSpeed2: 0,
+      spinSpeed3: 0,
+      spinSpeed4: 0,
+      spinSpeedCentral: 0,
       centralRotation: targetCentralRot,
       duration: isMobile ? 1.2 : 1.7,
       ease: 'power2.out'
@@ -469,12 +543,20 @@ function init() {
     }
 
     if (extraGearsState.active) {
-      extraGearsState.gear1Rotation += delta * extraGearsState.spinSpeed;
-      extraGearsState.gear2Rotation -= delta * extraGearsState.spinSpeed;
+      const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+
+      // TODAS as engrenagens giram para o MESMO LADO (+Z)
+      extraGearsState.gear1Rotation += delta * extraGearsState.spinSpeed1;
+      extraGearsState.gear2Rotation += delta * extraGearsState.spinSpeed2;
+
+      if (!isMobile) {
+        extraGearsState.gear3Rotation += delta * extraGearsState.spinSpeed3;
+        extraGearsState.gear4Rotation += delta * extraGearsState.spinSpeed4;
+      }
 
       // Durante a saída, a rotação central é conduzida suavemente pelo GSAP até a volta completa (360° exato)
       if (!extraGearsState.isExiting) {
-        extraGearsState.centralRotation -= delta * (extraGearsState.spinSpeed * 0.6);
+        extraGearsState.centralRotation += delta * extraGearsState.spinSpeedCentral;
       }
 
       if (extraGearsState.gear1) {
@@ -484,6 +566,16 @@ function init() {
       if (extraGearsState.gear2) {
         extraGearsState.gear2.position.set(0, 0, extraGearsState.gear2Z);
         extraGearsState.gear2.rotation.z = extraGearsState.gear2Rotation;
+      }
+      if (!isMobile) {
+        if (extraGearsState.gear3) {
+          extraGearsState.gear3.position.set(0, 0, extraGearsState.gear3Z);
+          extraGearsState.gear3.rotation.z = extraGearsState.gear3Rotation;
+        }
+        if (extraGearsState.gear4) {
+          extraGearsState.gear4.position.set(0, 0, extraGearsState.gear4Z);
+          extraGearsState.gear4.rotation.z = extraGearsState.gear4Rotation;
+        }
       }
     }
 

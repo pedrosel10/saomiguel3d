@@ -11,7 +11,7 @@ export function animateFoldSlideUp() {
   // Garante que o scroll interno do painel inicie no topo
   teamSection.scrollTop = 0;
 
-  // Animação GSAP do painel da equipe subindo com aceleração por GPU (force3D)
+  // Animação GSAP do painel da equipe subindo com aceleração por GPU (force3D) de forma cadenciada
   gsap.fromTo(
     teamSection,
     {
@@ -20,8 +20,8 @@ export function animateFoldSlideUp() {
     },
     {
       y: '0vh',
-      duration: isMobile ? 1.4 : 2.0,
-      ease: 'power2.out',
+      duration: isMobile ? 2.2 : 2.6,
+      ease: 'power2.inOut',
       force3D: true,
       onStart: () => {
         if (triggerRevealFn) triggerRevealFn();
