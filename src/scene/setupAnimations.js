@@ -22,6 +22,12 @@ export function setupAnimations(camera, lights, controls, buildUniforms, shadowF
     onUpdate: () => {
       camera.lookAt(0, 0, 0);
       controls.update();
+    },
+    onComplete: () => {
+      if (!camera.userData) camera.userData = {};
+      camera.userData.basePosition = camera.position.clone();
+      camera.userData.mouseWeight = 0.0;
+      camera.userData.isIntroComplete = true;
     }
   });
 

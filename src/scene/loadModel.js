@@ -97,7 +97,15 @@ export function loadModel(scene, onProgress, onLoad, onError) {
         uCoreRotationX: { value: 0.0 }
       };
 
-      // Injetar efeito de varredura neon ciano no gearMaterial
+      // Uniforms para o efeito de Raio-X e Esqueleto Estrutural revelado no hover do mouse
+      const skeletonUniforms = {
+        uHoverProgress: { value: 0.0 },
+        uHoverPoint: { value: new THREE.Vector3(0, 0, 0) },
+        uTime: { value: 0.0 },
+        uBuildProgress: buildUniforms.uBuildProgress
+      };
+
+      // Injetar efeito de varredura neon ciano e reaçaão ao hover no gearMaterial
       gearMaterial.clippingPlanes = [clipPlane];
       gearMaterial.clipShadows = true;
 
@@ -106,6 +114,8 @@ export function loadModel(scene, onProgress, onLoad, onError) {
         shader.uniforms.uMinY = buildUniforms.uMinY;
         shader.uniforms.uMaxY = buildUniforms.uMaxY;
         shader.uniforms.uCoreRotationX = innerCoreUniforms.uCoreRotationX;
+        shader.uniforms.uHoverProgress = skeletonUniforms.uHoverProgress;
+        shader.uniforms.uHoverPoint = skeletonUniforms.uHoverPoint;
 
         shader.vertexShader = `
           varying vec3 vWorldPosition;
@@ -122,6 +132,8 @@ export function loadModel(scene, onProgress, onLoad, onError) {
           uniform float uBuildProgress;
           uniform float uMinY;
           uniform float uMaxY;
+          uniform float uHoverProgress;
+          uniform vec3 uHoverPoint;
           varying vec3 vWorldPosition;
           ${shader.fragmentShader}
         `.replace(
@@ -159,6 +171,15 @@ export function loadModel(scene, onProgress, onLoad, onError) {
               );
             }
           }
+
+          // Realce sutil de brilho azul profundo no metal sob a lente de Raio-X do mouse
+          if (uHoverProgress > 0.001) {
+            float distToMouse = distance(vWorldPosition, uHoverPoint);
+            float xrayField = smoothstep(2.5, 0.1, distToMouse);
+            vec3 cyanHighlight = vec3(0.0, 0.65, 1.0);
+            float glowAmount = (0.12 + xrayField * 0.48) * uHoverProgress;
+            gl_FragColor.rgb = mix(gl_FragColor.rgb, cyanHighlight * 1.8, glowAmount * 0.30);
+          }
           `
         );
       };
@@ -172,21 +193,82 @@ export function loadModel(scene, onProgress, onLoad, onError) {
 
       gearMaterial.customDepthMaterial = customDepthMaterial;
 
-      // Aplicar material, corte de sombra e camada exclusiva de iluminação nas malhas
+      // Material Shader exclusivo para o Esqueleto de Malha Estrutural Neon Ciano (Wireframe)
+      const wireframeMat = new THREE.ShaderMaterial({
+        uniforms: {
+          uHoverProgress: skeletonUniforms.uHoverProgress,
+          uHoverPoint: skeletonUniforms.uHoverPoint,
+          uTime: skeletonUniforms.uTime,
+          uBuildProgress: skeletonUniforms.uBuildProgress
+        },
+        transparent: true,
+        depthTest: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        clippingPlanes: [clipPlane],
+        clipShadows: false,
+        vertexShader: `
+          varying vec3 vWorldPos;
+
+          void main() {
+            vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform float uHoverProgress;
+          uniform vec3 uHoverPoint;
+          uniform float uTime;
+          uniform float uBuildProgress;
+          varying vec3 vWorldPos;
+
+          void main() {
+            if (uHoverProgress <= 0.001) discard;
+
+            // Foco esférico de Raio-X ao redor da posição 3D do mouse no modelo
+            float distToMouse = distance(vWorldPos, uHoverPoint);
+            float xrayLens = smoothstep(2.6, 0.1, distToMouse);
+
+            // Brilho da malha: 18% no esqueleto geral + 82% sob a lente de Raio-X
+            float intensity = (0.18 + xrayLens * 0.82) * uHoverProgress;
+
+            // Pulsação sutil orgânica no esqueleto
+            float pulse = sin(uTime * 3.5 + vWorldPos.y * 8.0) * 0.12 + 0.88;
+
+            // Ciano Elétrico Neozinho (#00f0ff) com centro quente branco puro
+            vec3 cyanColor = vec3(0.0, 0.95, 1.0);
+            vec3 whiteHot = vec3(1.0, 1.0, 1.0);
+            vec3 finalColor = mix(cyanColor, whiteHot, xrayLens * 0.55) * 2.5;
+
+            float finalAlpha = intensity * pulse * 0.85;
+            if (finalAlpha < 0.01) discard;
+
+            gl_FragColor = vec4(finalColor, finalAlpha);
+          }
+        `
+      });
+
+      // Aplicar material, corte de sombra, camada exclusiva de iluminação e sobreposição do esqueleto wireframe
       pivotGroup.traverse((child) => {
-        if (child.isMesh) {
+        if (child.isMesh && child.geometry) {
           child.material = gearMaterial;
           child.customDepthMaterial = customDepthMaterial;
           child.castShadow = true;
           child.receiveShadow = true;
-          child.layers.enable(1); // Habilita o Layer 1 exclusivo da Luz Azul (afeta apenas o 3D, sem iluminar o chão)
+          child.layers.enable(1);
+
+          // Criar a malha wireframe do esqueleto estrutural sobreposta à malha original
+          const wireframeGeo = new THREE.WireframeGeometry(child.geometry);
+          const wireframeMesh = new THREE.LineSegments(wireframeGeo, wireframeMat);
+          wireframeMesh.name = 'WireframeSkeleton';
+          child.add(wireframeMesh);
         }
       });
 
       scene.add(pivotGroup);
 
       if (onLoad) {
-        onLoad(pivotGroup, { size, center: new THREE.Vector3(0, 0, 0) }, gearMaterial, buildUniforms, innerCoreUniforms);
+        onLoad(pivotGroup, { size, center: new THREE.Vector3(0, 0, 0) }, gearMaterial, buildUniforms, innerCoreUniforms, skeletonUniforms);
       }
     },
 

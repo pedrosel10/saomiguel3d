@@ -14,7 +14,7 @@ export function setupScene(canvas) {
 
   // Posição inicial da câmera: de frente pro modelo 3D com visão vista de cima (0.0, 4.2, 9.5)
   const START_POS = new THREE.Vector3(0.0, 4.2, 9.5);
-  const ISOMETRIC_POS = new THREE.Vector3(6.0, 5.2, 6.0);
+  const ISOMETRIC_POS = new THREE.Vector3(5.4, 4.68, 5.4);
   camera.position.copy(START_POS);
   camera.lookAt(0, 0, 0);
   camera.layers.enable(1); // Permite ver objetos do Layer 1 (Luz Azul exclusiva do 3D)
@@ -64,7 +64,7 @@ export function setupScene(canvas) {
 
   const floor = new THREE.Mesh(planeGeo, planeMat);
   floor.rotation.x = -Math.PI / 2;
-  floor.position.y = -1.70; // Posicionado exatamente no contato da base da engrenagem 3D
+  floor.position.y = -1.88; // Posicionado com folga limpa abaixo da base da engrenagem 3D
   floor.receiveShadow = true;
   scene.add(floor);
 
@@ -72,7 +72,7 @@ export function setupScene(canvas) {
   const shadowFloorMat = new THREE.ShadowMaterial({ opacity: 0.32 });
   const shadowFloor = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), shadowFloorMat);
   shadowFloor.rotation.x = -Math.PI / 2;
-  shadowFloor.position.y = -1.69;
+  shadowFloor.position.y = -1.87;
   shadowFloor.receiveShadow = true;
   scene.add(shadowFloor);
 
@@ -101,14 +101,14 @@ export function updateResponsiveCamera(camera, scene, floor, shadowFloor) {
 
     // No mobile: chão ajustado na base exata do modelo 3D (sem flutuar)
     if (floor) {
-      floor.position.y = -1.70;
+      floor.position.y = -1.88;
       if (floor.material) {
         floor.material.opacity = 0.92;
         floor.material.color.setHex(0xffffff);
       }
     }
     if (shadowFloor) {
-      shadowFloor.position.y = -1.69;
+      shadowFloor.position.y = -1.87;
     }
 
     // Neblina sutil empurrada mais para o fundo no mobile para revelar mais o chão
@@ -121,20 +121,20 @@ export function updateResponsiveCamera(camera, scene, floor, shadowFloor) {
       }
     }
   } else {
-    // No desktop: mantém o FOV padrão de 26°, posição isométrica original (6, 5.2, 6) e fundo branco
+    // No desktop: mantém o FOV de 26° e posição isométrica aproximada 10% mais perto (5.4, 4.68, 5.4)
     camera.fov = 26;
-    camera.position.set(6.0, 5.2, 6.0);
+    camera.position.set(5.4, 4.68, 5.4);
     camera.lookAt(0, 0, 0);
 
     if (floor) {
-      floor.position.y = -1.70;
+      floor.position.y = -1.88;
       if (floor.material) {
         floor.material.opacity = 0.85;
         floor.material.color.setHex(0xffffff);
       }
     }
     if (shadowFloor) {
-      shadowFloor.position.y = -1.69;
+      shadowFloor.position.y = -1.87;
     }
     if (scene && scene.fog) {
       if (scene.fog.isFog) {
@@ -147,6 +147,9 @@ export function updateResponsiveCamera(camera, scene, floor, shadowFloor) {
   }
 
   camera.updateProjectionMatrix();
+
+  if (!camera.userData) camera.userData = {};
+  camera.userData.basePosition = camera.position.clone();
 }
 
 function createNoiseBumpTexture() {

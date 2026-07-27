@@ -43,7 +43,17 @@ function init() {
   let sparksEffect = null;
 
   let coreUniformsRef = null;
+  let skeletonUniformsRef = null;
   let callouts = null;
+
+  // Objeto de Raycasting e estado de hover para a revelação do Raio-X do Esqueleto
+  const hoverRaycaster = new THREE.Raycaster();
+  const mouseNDC = new THREE.Vector2();
+  const hoverState = {
+    isHovered: false,
+    progress: 0,
+    point: new THREE.Vector3()
+  };
 
   // Estado de deslocamento progressivo de puxar no eixo X pelo scroll
   const pullState = {
@@ -120,9 +130,10 @@ function init() {
     (percent) => {
       ui.updateProgress(percent);
     },
-    (loadedModel, metadata, gearMaterial, buildUniforms, innerCoreUniforms) => {
+    (loadedModel, metadata, gearMaterial, buildUniforms, innerCoreUniforms, skeletonUniforms) => {
       modelState.mesh = loadedModel;
       coreUniformsRef = innerCoreUniforms;
+      skeletonUniformsRef = skeletonUniforms;
 
       // Inicializar Sistema de Callout Diagrams saindo de trás do centro da engrenagem
       callouts = setupCallouts(scene, camera, renderer, modelState);
@@ -252,8 +263,9 @@ function init() {
 
     const delta = clock.getDelta();
 
-    // Inclinação no eixo Y guiada de forma ultrassuave pelo movimento (lerp 8%)
+    // Inclinação no eixo Y e X guiadas de forma ultrassuave pelo movimento (lerp 8%)
     mouse.x += (mouse.targetX - mouse.x) * 0.08;
+    mouse.y += (mouse.targetY - mouse.y) * 0.08;
 
     // Limite máximo de 30% de rotação (aprox ±0.33 rad / ~19 graus)
     const MAX_ROTATION_30_PERCENT = 0.33;
@@ -272,16 +284,35 @@ function init() {
     // Trava física suave (Soft Clamp)
     pullState.xAngle = THREE.MathUtils.clamp(pullState.xAngle, -MAX_ROTATION_30_PERCENT, MAX_ROTATION_30_PERCENT);
 
-    // O modelo permanece 100% FIXO no mesmo ponto do espaço, apenas GIRANDO no seu próprio eixo
-    if (modelState.mesh) {
-      // Orientação e inclinação lateral guiada de um lado para o outro
-      modelState.mesh.rotation.y = mouse.x * Math.PI * 0.065;
+    // Movimento orbital dinâmico da CÂMERA reagindo ao mouse (move todo o cenário 3D junto)
+    if (camera.userData && camera.userData.basePosition && camera.userData.isIntroComplete) {
+      // Suavização do peso do mouse (0.0 -> 1.0) para eliminar totalmente qualquer pulo pós-carregamento
+      if (camera.userData.mouseWeight === undefined) camera.userData.mouseWeight = 0.0;
+      camera.userData.mouseWeight += (1.0 - camera.userData.mouseWeight) * 0.04;
 
-      // Rotação pura do disco no eixo Z em torno do próprio eixo central
+      const weight = camera.userData.mouseWeight;
+      const basePos = camera.userData.basePosition;
+      const camPos = basePos.clone();
+
+      // Rotação orbital lateral da câmera (yaw panorâmico do cenário inteiro)
+      camPos.applyAxisAngle(new THREE.Vector3(0, 1, 0), mouse.x * 0.18 * weight);
+
+      // Deslocamento suave de altura (pitch) e sensibilidade tátil
+      camPos.y += mouse.y * 0.45 * weight;
+
+      camera.position.copy(camPos);
+      camera.lookAt(0, 0, 0);
+    }
+
+    if (modelState.mesh) {
+      // O modelo agora não gira sozinho no eixo Y; a câmera que orbita todo o mundo 3D
+      modelState.mesh.rotation.y = 0;
+
+      // Rotação pura do disco no eixo Z em torno do próprio eixo central (mantido via scroll/pullState)
       const rollAngle = pullState.xAngle * 1.5;
       modelState.mesh.rotation.z = -rollAngle;
 
-      // Posição estritamente estática no centro do espaço (sem se mover pro lado)
+      // Posição estritamente estática no centro do espaço
       modelState.mesh.position.set(0, 0, 0);
     }
 
@@ -295,13 +326,33 @@ function init() {
       ui.updateLevelGauge(mouse.x);
     }
 
-    // Atualizar tempo de animação da linha de eixo dinamica viva
-    if (modelState.mesh) {
-      modelState.mesh.traverse((child) => {
-        if (child.userData && child.userData.uniforms && child.userData.uniforms.uTime) {
-          child.userData.uniforms.uTime.value += delta;
-        }
-      });
+    // Raycasting para detectar hover e interseção 3D no modelo (revelação do Raio-X)
+    if (modelState.mesh && camera) {
+      mouseNDC.set(mouse.targetX, mouse.targetY);
+      hoverRaycaster.setFromCamera(mouseNDC, camera);
+      const intersects = hoverRaycaster.intersectObject(modelState.mesh, true);
+      const meshHit = intersects.find(hit => hit.object.isMesh && hit.object.name !== 'WireframeSkeleton');
+
+      if (meshHit) {
+        hoverState.isHovered = true;
+        hoverState.point.lerp(meshHit.point, 0.25);
+      } else {
+        hoverState.isHovered = false;
+      }
+
+      if (canvas) {
+        canvas.style.cursor = hoverState.isHovered ? 'crosshair' : 'default';
+      }
+    }
+
+    // Suavização do indicador de progresso de hover do Raio-X
+    hoverState.progress += ((hoverState.isHovered ? 1.0 : 0.0) - hoverState.progress) * 0.12;
+
+    // Atualizar uniforms do shader do esqueleto wireframe
+    if (skeletonUniformsRef) {
+      skeletonUniformsRef.uHoverProgress.value = hoverState.progress;
+      skeletonUniformsRef.uHoverPoint.value.copy(hoverState.point);
+      skeletonUniformsRef.uTime.value += delta;
     }
 
     // Atualizar partículas de faísca
@@ -309,9 +360,9 @@ function init() {
       sparksEffect.update(delta);
     }
 
-    // Atualizar projeções dos Callouts de Seções
+    // Atualizar projeções dos Callouts de Seções com reação fluida ao mouse
     if (callouts) {
-      callouts.update(delta);
+      callouts.update(delta, mouse);
     }
 
     // Atualizar OrbitControls

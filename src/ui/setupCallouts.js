@@ -4,10 +4,10 @@ import gsap from 'gsap';
 export function setupCallouts(scene, camera, renderer, modelState) {
   // 4 Tópicos do Menu — posições fixas em % da tela
   const calloutData = [
-    { id: 'equipe',  label: 'Equipe',   side: 'left',  isTop: true  },
-    { id: 'servicos',label: 'Serviço',  side: 'right', isTop: true  },
-    { id: 'cases',   label: 'Clientes', side: 'left',  isTop: false },
-    { id: 'contato', label: 'Contato',  side: 'right', isTop: false },
+    { id: 'equipe', label: 'Equipe', side: 'left', isTop: true },
+    { id: 'servicos', label: 'Serviço', side: 'right', isTop: true },
+    { id: 'cases', label: 'Clientes', side: 'left', isTop: false },
+    { id: 'contato', label: 'Contato', side: 'right', isTop: false },
   ];
 
   // Função auxiliar para embalar o texto em letras individuais (spans)
@@ -63,7 +63,7 @@ export function setupCallouts(scene, camera, renderer, modelState) {
 
     const pos = getCardScreenPos(data);
     cardNode.style.left = `${pos.x}px`;
-    cardNode.style.top  = `${pos.y}px`;
+    cardNode.style.top = `${pos.y}px`;
 
     const titleHTML = createLetterSpans(data.label);
 
@@ -88,7 +88,7 @@ export function setupCallouts(scene, camera, renderer, modelState) {
     calloutElements.forEach(({ data, element }) => {
       const pos = getCardScreenPos(data);
       element.style.left = `${pos.x}px`;
-      element.style.top  = `${pos.y}px`;
+      element.style.top = `${pos.y}px`;
     });
     updatePositions(0);
   });
@@ -171,7 +171,7 @@ export function setupCallouts(scene, camera, renderer, modelState) {
     const geo = new THREE.BufferGeometry();
     const positions = new Float32Array(3 * 3); // 3 pontos: Origem → Dobra → Card
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    
+
     // Atributo customizado aProgress: 0.0 no centro, progressDobra na curva, 1.0 no card
     const progArray = new Float32Array([0.0, 0.5, 1.0]);
     geo.setAttribute('aProgress', new THREE.BufferAttribute(progArray, 1));
@@ -184,21 +184,22 @@ export function setupCallouts(scene, camera, renderer, modelState) {
   scene.add(lines3DGroup);
 
   // Vetores e utilitários de projeção plana paralela à câmera
-  const centerWorld3D  = new THREE.Vector3();
-  const cardWorld3D    = new THREE.Vector3();
-  const elbowWorld3D   = new THREE.Vector3();
-  const cameraDir      = new THREE.Vector3();
-  const planeCam       = new THREE.Plane();
-  const raycaster      = new THREE.Raycaster();
-  const rayNDC         = new THREE.Vector2();
+  const centerWorld3D = new THREE.Vector3();
+  const cardWorld3D = new THREE.Vector3();
+  const elbowWorld3D = new THREE.Vector3();
+  const cameraDir = new THREE.Vector3();
+  const planeCam = new THREE.Plane();
+  const raycaster = new THREE.Raycaster();
+  const rayNDC = new THREE.Vector2();
 
-  function updatePositions(delta = 0.016) {
+  function updatePositions(delta = 0.016, mouse = { x: 0, y: 0 }) {
     if (!camera || !renderer) return;
 
     lineUniforms.uTime.value += delta;
 
-    const width  = window.innerWidth;
+    const width = window.innerWidth;
     const height = window.innerHeight;
+    const isMobile = width <= 768 || (width / height) < 1.0;
 
     // Obter o ponto pivô 3D exato do centro do eixo da engrenagem (centro geométrico exato 0, 0, 0)
     if (modelState && modelState.mesh) {
@@ -208,7 +209,7 @@ export function setupCallouts(scene, camera, renderer, modelState) {
     }
 
     // Projetar centro 3D → 2D na tela
-    const centerProj    = centerWorld3D.clone().project(camera);
+    const centerProj = centerWorld3D.clone().project(camera);
     const centerScreenX = (centerProj.x * 0.5 + 0.5) * width;
     const centerScreenY = (-centerProj.y * 0.5 + 0.5) * height;
 
@@ -223,10 +224,39 @@ export function setupCallouts(scene, camera, renderer, modelState) {
     }
 
     calloutElements.forEach(({ data, element }, index) => {
-      const isMobile = width <= 768 || (width / height) < 1.0;
       const isLeft = data.side === 'left';
-      const isTop  = data.isTop;
-      
+      const isTop = data.isTop;
+
+      // Posição base fixa calculada em % da tela
+      const basePos = getCardScreenPos(data);
+
+      // Deslocamento de parallax 3D ao reagir ao movimento do mouse
+      const mouseScale = isMobile ? 0.35 : 1.0;
+      const parallaxX = (isLeft ? 22 : 28) * mouseScale;
+      const parallaxY = (isTop ? 18 : 24) * mouseScale;
+
+      // Micro-flutuação orgânica contínua com desfasamento por card
+      const phases = [0.0, 1.6, 3.2, 4.8];
+      const phase = phases[index % 4];
+      const time = lineUniforms.uTime.value;
+      const floatX = Math.sin(time * 1.5 + phase) * (isMobile ? 2.5 : 4.5);
+      const floatY = Math.cos(time * 1.2 + phase) * (isMobile ? 3.0 : 5.5);
+
+      // Posição final dinâmica recalculada frame a frame
+      const currentX = basePos.x + (mouse.x || 0) * parallaxX + floatX;
+      const currentY = basePos.y + (mouse.y || 0) * parallaxY + floatY;
+
+      element.style.left = `${currentX}px`;
+      element.style.top = `${currentY}px`;
+
+      // Efeito sutil de inclinação 3D no box interno do card
+      const contentBox = element.querySelector('.callout-content-box');
+      if (contentBox) {
+        const tiltX = (mouse.y || 0) * -5;
+        const tiltY = (mouse.x || 0) * 7;
+        contentBox.style.transform = `perspective(600px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+      }
+
       let lineEndX, lineEndY, elbowScreenX, elbowScreenY;
 
       if (isMobile && element && element.offsetWidth > 0) {
@@ -247,17 +277,15 @@ export function setupCallouts(scene, camera, renderer, modelState) {
         elbowScreenX = centerScreenX + clearanceX;
         elbowScreenY = centerScreenY + (lineEndY - centerScreenY) * yFactor;
       } else if (isMobile) {
-        const pos = getCardScreenPos(data);
-        lineEndX = isLeft ? pos.x + 35 : pos.x - 35;
-        lineEndY = isTop ? pos.y + 14 : pos.y - 14;
+        lineEndX = isLeft ? currentX + 35 : currentX - 35;
+        lineEndY = isTop ? currentY + 14 : currentY - 14;
         const clearanceX = isLeft ? (data.id === 'equipe' ? -115 : -90) : 110;
         const yFactor = isTop ? 0.15 : 0.72;
         elbowScreenX = centerScreenX + clearanceX;
         elbowScreenY = centerScreenY + (lineEndY - centerScreenY) * yFactor;
       } else {
-        const pos = getCardScreenPos(data);
-        lineEndX = pos.x;
-        lineEndY = pos.y;
+        lineEndX = currentX;
+        lineEndY = currentY;
         elbowScreenX = centerScreenX + (isLeft ? -180 : 180);
         elbowScreenY = lineEndY;
       }
@@ -274,8 +302,8 @@ export function setupCallouts(scene, camera, renderer, modelState) {
       const { geo } = threeLines[index];
       const posAttr = geo.attributes.position;
       posAttr.setXYZ(0, centerWorld3D.x, centerWorld3D.y, centerWorld3D.z);
-      posAttr.setXYZ(1, elbowWorld3D.x,  elbowWorld3D.y,  elbowWorld3D.z);
-      posAttr.setXYZ(2, cardWorld3D.x,   cardWorld3D.y,   cardWorld3D.z);
+      posAttr.setXYZ(1, elbowWorld3D.x, elbowWorld3D.y, elbowWorld3D.z);
+      posAttr.setXYZ(2, cardWorld3D.x, cardWorld3D.y, cardWorld3D.z);
       posAttr.needsUpdate = true;
 
       const progAttr = geo.attributes.aProgress;
@@ -310,8 +338,8 @@ export function setupCallouts(scene, camera, renderer, modelState) {
 
     // 2. Animação Elegante de Preenchimento de Baixo para Cima dos Cards HTML
     calloutElements.forEach(({ element }, index) => {
-      const contentBox   = element.querySelector('.callout-content-box');
-      const scanLine     = element.querySelector('.holo-scan-line');
+      const contentBox = element.querySelector('.callout-content-box');
+      const scanLine = element.querySelector('.holo-scan-line');
       const charElements = Array.from(element.querySelectorAll('.callout-title .char:not(.space)'));
 
       // Garantir visibilidade do card para o clip-path atuar
@@ -347,14 +375,14 @@ export function setupCallouts(scene, camera, renderer, modelState) {
       // Fade In suave e cadenciado das letras do título (atrasado para surgir após a abertura do card)
       if (charElements.length > 0) {
         const shuffledChars = shuffleArray(charElements);
-        
+
         tl.to(shuffledChars, {
           opacity: 1,
           y: 0,
           duration: 0.38,
           stagger: 0.05,
           ease: 'power2.out',
-          onStart: function() {
+          onStart: function () {
             const targetChar = this.targets ? this.targets()[0] : null;
             if (targetChar) {
               targetChar.classList.add('holo-glow');
@@ -368,8 +396,8 @@ export function setupCallouts(scene, camera, renderer, modelState) {
     return tl;
   }
 
-  return { 
-    update: updatePositions, 
+  return {
+    update: updatePositions,
     animateIn,
     lineUniforms
   };

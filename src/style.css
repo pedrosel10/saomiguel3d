@@ -593,7 +593,14 @@ kbd {
   white-space: nowrap;
   clip-path: inset(100% 0 0 0);
   /* Inicialmente mascarado 100% de baixo para cima */
-  will-change: clip-path;
+  will-change: clip-path, transform;
+  transform-style: preserve-3d;
+  transition: box-shadow 0.3s ease, background 0.3s ease, transform 0.1s ease-out;
+}
+
+.callout-card:hover .callout-content-box {
+  background: #2237e3;
+  box-shadow: 0 10px 32px rgba(26, 43, 194, 0.65), 0 0 20px rgba(0, 240, 255, 0.45);
 }
 
 /* Linha Laser Neon Horizontal de Preenchimento (subindo de baixo para cima) */
@@ -723,8 +730,8 @@ kbd {
 /* Descrição H2 no Canto Superior Esquerdo */
 .header-brand {
   position: fixed;
-  top: 36px;
-  left: 36px;
+  top: 60px;
+  left: 60px;
   max-width: 380px;
   z-index: 20;
   pointer-events: none;
@@ -745,9 +752,9 @@ kbd {
 /* Título H1 no Canto Inferior Direito */
 .footer-description {
   position: fixed;
-  bottom: 36px;
-  /* Posição original no canto inferior direito */
-  right: 36px;
+  bottom: 60px;
+  /* Posição no canto inferior direito */
+  right: 60px;
   z-index: 20;
   pointer-events: none;
   user-select: none;
@@ -792,19 +799,19 @@ kbd {
 
 @media (max-width: 768px) {
   .header-brand {
-    top: 24px;
-    left: 20px;
-    max-width: 230px;
+    top: 28px;
+    left: 24px;
+    max-width: min(340px, calc(100vw - 48px));
   }
 
   .brand-subtitle {
-    font-size: 0.65rem;
-    line-height: 1.45;
+    font-size: 0.70rem;
+    line-height: 1.50;
   }
 
   .footer-description {
-    bottom: 24px;
-    right: 20px;
+    bottom: 36px;
+    right: 28px;
   }
 
   .crane-hook {
@@ -820,19 +827,14 @@ kbd {
   }
 }
 
-/* Localização no Canto Superior Direito */
+/* Localização acima do H2 no Canto Superior Esquerdo */
 .header-location {
-  position: fixed;
-  top: 36px;
-  right: 36px;
-  z-index: 20;
-  pointer-events: none;
-  user-select: none;
+  margin-bottom: 22px;
 }
 
 .location-text {
   font-family: 'Inter', sans-serif;
-  font-size: 0.85rem;
+  font-size: 0.72rem;
   font-weight: 700;
   color: #1A2BC2;
   /* Tom Azul Royal #1A2BC2 */
@@ -841,16 +843,16 @@ kbd {
   /* Espaçamento elegante de marca */
   margin: 0;
   line-height: 1;
+  display: block;
 }
 
 @media (max-width: 768px) {
   .header-location {
-    top: 24px;
-    right: 20px;
+    margin-bottom: 14px;
   }
 
   .location-text {
-    font-size: 0.70rem;
-    letter-spacing: 1px;
+    font-size: 0.60rem;
+    letter-spacing: 1.2px;
   }
 }
