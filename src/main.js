@@ -263,9 +263,9 @@ function init() {
 
     const delta = clock.getDelta();
 
-    // Inclinação no eixo Y e X guiadas de forma ultrassuave pelo movimento (lerp 8%)
-    mouse.x += (mouse.targetX - mouse.x) * 0.08;
-    mouse.y += (mouse.targetY - mouse.y) * 0.08;
+    // Inclinação no eixo Y e X guiadas de forma ultrassuave e sutil pelo movimento (lerp 4.5%)
+    mouse.x += (mouse.targetX - mouse.x) * 0.045;
+    mouse.y += (mouse.targetY - mouse.y) * 0.045;
 
     // Limite máximo de 30% de rotação (aprox ±0.33 rad / ~19 graus)
     const MAX_ROTATION_30_PERCENT = 0.33;
@@ -284,7 +284,7 @@ function init() {
     // Trava física suave (Soft Clamp)
     pullState.xAngle = THREE.MathUtils.clamp(pullState.xAngle, -MAX_ROTATION_30_PERCENT, MAX_ROTATION_30_PERCENT);
 
-    // Movimento orbital dinâmico da CÂMERA reagindo ao mouse (move todo o cenário 3D junto)
+    // Movimento orbital dinâmico da CÂMERA reagindo ao mouse (movimento sutil e elegante do cenário 3D)
     if (camera.userData && camera.userData.basePosition && camera.userData.isIntroComplete) {
       // Suavização do peso do mouse (0.0 -> 1.0) para eliminar totalmente qualquer pulo pós-carregamento
       if (camera.userData.mouseWeight === undefined) camera.userData.mouseWeight = 0.0;
@@ -294,11 +294,11 @@ function init() {
       const basePos = camera.userData.basePosition;
       const camPos = basePos.clone();
 
-      // Rotação orbital lateral da câmera (yaw panorâmico do cenário inteiro)
-      camPos.applyAxisAngle(new THREE.Vector3(0, 1, 0), mouse.x * 0.18 * weight);
+      // Rotação orbital sutil da câmera (~3.4° max no eixo Y)
+      camPos.applyAxisAngle(new THREE.Vector3(0, 1, 0), mouse.x * 0.06 * weight);
 
-      // Deslocamento suave de altura (pitch) e sensibilidade tátil
-      camPos.y += mouse.y * 0.45 * weight;
+      // Deslocamento de altura sutil (~0.12u max no eixo Y)
+      camPos.y += mouse.y * 0.12 * weight;
 
       camera.position.copy(camPos);
       camera.lookAt(0, 0, 0);

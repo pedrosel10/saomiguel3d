@@ -230,17 +230,17 @@ export function setupCallouts(scene, camera, renderer, modelState) {
       // Posição base fixa calculada em % da tela
       const basePos = getCardScreenPos(data);
 
-      // Deslocamento de parallax 3D ao reagir ao movimento do mouse
+      // Deslocamento de parallax sutil e elegante ao reagir ao movimento do mouse
       const mouseScale = isMobile ? 0.35 : 1.0;
-      const parallaxX = (isLeft ? 22 : 28) * mouseScale;
-      const parallaxY = (isTop ? 18 : 24) * mouseScale;
+      const parallaxX = (isLeft ? 7 : 9) * mouseScale;
+      const parallaxY = (isTop ? 5 : 7) * mouseScale;
 
-      // Micro-flutuação orgânica contínua com desfasamento por card
+      // Micro-flutuação orgânica sutil com desfasamento por card
       const phases = [0.0, 1.6, 3.2, 4.8];
       const phase = phases[index % 4];
       const time = lineUniforms.uTime.value;
-      const floatX = Math.sin(time * 1.5 + phase) * (isMobile ? 2.5 : 4.5);
-      const floatY = Math.cos(time * 1.2 + phase) * (isMobile ? 3.0 : 5.5);
+      const floatX = Math.sin(time * 1.4 + phase) * (isMobile ? 1.5 : 2.5);
+      const floatY = Math.cos(time * 1.1 + phase) * (isMobile ? 1.8 : 3.0);
 
       // Posição final dinâmica recalculada frame a frame
       const currentX = basePos.x + (mouse.x || 0) * parallaxX + floatX;
@@ -252,8 +252,8 @@ export function setupCallouts(scene, camera, renderer, modelState) {
       // Efeito sutil de inclinação 3D no box interno do card
       const contentBox = element.querySelector('.callout-content-box');
       if (contentBox) {
-        const tiltX = (mouse.y || 0) * -5;
-        const tiltY = (mouse.x || 0) * 7;
+        const tiltX = (mouse.y || 0) * -2.0;
+        const tiltY = (mouse.x || 0) * 2.5;
         contentBox.style.transform = `perspective(600px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
       }
 
