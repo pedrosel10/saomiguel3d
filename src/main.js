@@ -10,6 +10,7 @@ import { setupUI } from './ui/setupUI.js';
 import { setupSparks } from './effects/setupSparks.js';
 import { preloadSmoke } from './effects/landingSmoke.js';
 import { setupCallouts } from './ui/setupCallouts.js';
+import { setupTeamFold, animateFoldSlideUp, animateFoldSlideDown } from './ui/setupTeamFold.js';
 
 function init() {
   const canvas = document.getElementById('webgl-canvas');
@@ -45,6 +46,20 @@ function init() {
   let coreUniformsRef = null;
   let skeletonUniformsRef = null;
   let callouts = null;
+
+  // Estado para as 2 engrenagens 3D emergentes no eixo central
+  const extraGearsState = {
+    gear1: null,
+    gear2: null,
+    active: false,
+    isExiting: false,
+    gear1Z: 0,
+    gear2Z: 0,
+    gear1Rotation: 0,
+    gear2Rotation: 0,
+    centralRotation: 0,
+    spinSpeed: 0
+  };
 
   // Objeto de Raycasting e estado de hover para a revelação do Raio-X do Esqueleto
   const hoverRaycaster = new THREE.Raycaster();
@@ -114,7 +129,7 @@ function init() {
     mouse.targetX = normalizedTarget;
   });
 
-  // 4. Configurar Interface do Usuário (UI)
+  // 4. Configurar Interface do Usuário (UI) e Dobra da Equipe
   const ui = setupUI({
     camera,
     controls,
@@ -123,6 +138,8 @@ function init() {
     modelState,
     defaultCameraPos: ISOMETRIC_POS
   });
+
+  setupTeamFold();
 
   // 5. Carregar Modelo 3D (smlogo3d.glb)
   loadModel(
@@ -246,6 +263,133 @@ function init() {
     }
   );
 
+  // Animação 3D das 2 engrenagens vindo de fora da tela pelo eixo Z central + Contrarrotação
+  function triggerEquipeGearAnimation() {
+    if (!modelState.mesh) return;
+
+    // Desfazer os cards e linhas holográficas em animação reversa antes de subir a dobra
+    if (callouts && callouts.animateOut) {
+      callouts.animateOut(0.0);
+    }
+
+    if (!extraGearsState.gear1 || !extraGearsState.gear2) {
+      const meshSource = modelState.mesh.children[0] || modelState.mesh;
+      const g1 = new THREE.Group();
+      g1.add(meshSource.clone(true));
+
+      const g2 = new THREE.Group();
+      g2.add(meshSource.clone(true));
+
+      g1.visible = false;
+      g2.visible = false;
+
+      scene.add(g1);
+      scene.add(g2);
+
+      extraGearsState.gear1 = g1;
+      extraGearsState.gear2 = g2;
+    }
+
+    extraGearsState.active = true;
+    extraGearsState.isExiting = false;
+    extraGearsState.gear1.visible = true;
+    extraGearsState.gear2.visible = true;
+
+    // As engrenagens iniciam fora da tela no eixo Z (uma bem na frente +35.0, outra bem atrás -35.0)
+    const OFFSCREEN_FAR_Z = 35.0;
+    const TARGET_OFFSET_Z = 2.2;
+
+    extraGearsState.gear1Z = OFFSCREEN_FAR_Z;
+    extraGearsState.gear2Z = -OFFSCREEN_FAR_Z;
+    extraGearsState.spinSpeed = 0;
+
+    const tl = gsap.timeline();
+
+    // 1. As 2 engrenagens vem de fora da tela ao longo do eixo central Z e param próximo da engrenagem do centro
+    tl.to(extraGearsState, {
+      gear1Z: TARGET_OFFSET_Z,
+      gear2Z: -TARGET_OFFSET_Z,
+      duration: 1.6,
+      ease: 'power3.out'
+    }, 0);
+
+    // 2. Aceleram a rotação em sentidos opostos durante a aproximação
+    tl.to(extraGearsState, {
+      spinSpeed: 3.8,
+      duration: 1.8,
+      ease: 'power2.inOut'
+    }, 0.1);
+
+    // 3. Após se posicionarem no centro e iniciarem a contrarrotação, dispara a subida da dobra (espera maior)
+    tl.add(() => {
+      animateFoldSlideUp();
+    }, 1.35);
+  }
+
+  // Animação 3D de saída das 2 engrenagens voltando para fora da tela
+  function triggerEquipeGearExitAnimation() {
+    if (!extraGearsState.active || !extraGearsState.gear1 || !extraGearsState.gear2) {
+      return;
+    }
+
+    // Fazer os cards e linhas reconstruírem-se e reaparecerem na tela inicial
+    if (callouts && callouts.animateIn) {
+      callouts.animateIn(0.5);
+    }
+
+    const OFFSCREEN_FAR_Z = 35.0;
+
+    // Calcular a próxima volta completa (múltiplo exato de 2 * PI) para a engrenagem central parar suavemente na posição inicial
+    const TWO_PI = Math.PI * 2;
+    const currentRot = extraGearsState.centralRotation;
+    const targetCentralRot = Math.round(currentRot / TWO_PI) * TWO_PI;
+
+    extraGearsState.isExiting = true;
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        extraGearsState.active = false;
+        extraGearsState.isExiting = false;
+        extraGearsState.centralRotation = 0;
+        if (extraGearsState.gear1) extraGearsState.gear1.visible = false;
+        if (extraGearsState.gear2) extraGearsState.gear2.visible = false;
+      }
+    });
+
+    // 1. As 2 engrenagens duplicadas voam de volta para fora da tela enquanto a dobra recolhe
+    tl.to(extraGearsState, {
+      gear1Z: OFFSCREEN_FAR_Z,
+      gear2Z: -OFFSCREEN_FAR_Z,
+      duration: 1.5,
+      ease: 'power3.in'
+    }, 0.4);
+
+    // 2. A velocidade desacelera suavemente até parar e a engrenagem central conclui a volta completa (360°)
+    tl.to(extraGearsState, {
+      spinSpeed: 0,
+      centralRotation: targetCentralRot,
+      duration: 1.7,
+      ease: 'power2.out'
+    }, 0.2);
+  }
+
+  // Ouvinte de clique nos cards/callouts para abrir a Seção Equipe
+  window.addEventListener('calloutClick', (event) => {
+    const data = event.detail;
+    if (data && (data.id === 'equipe' || data.id === 'team')) {
+      triggerEquipeGearAnimation();
+    }
+  });
+
+  // Ouvinte para fechar/voltar da Seção Equipe para a experiência 3D hero
+  window.addEventListener('calloutClose', (event) => {
+    const data = event.detail;
+    if (data && (data.id === 'equipe' || data.id === 'team')) {
+      animateFoldSlideDown();
+      triggerEquipeGearExitAnimation();
+    }
+  });
+
   // 6. Redimensionamento de Tela Responsivo
   window.addEventListener('resize', () => {
     updateResponsiveCamera(camera, scene, floor, shadowFloor);
@@ -304,13 +448,34 @@ function init() {
       camera.lookAt(0, 0, 0);
     }
 
+    if (extraGearsState.active) {
+      extraGearsState.gear1Rotation += delta * extraGearsState.spinSpeed;
+      extraGearsState.gear2Rotation -= delta * extraGearsState.spinSpeed;
+
+      // Durante a saída, a rotação central é conduzida suavemente pelo GSAP até a volta completa (360° exato)
+      if (!extraGearsState.isExiting) {
+        extraGearsState.centralRotation -= delta * (extraGearsState.spinSpeed * 0.6);
+      }
+
+      if (extraGearsState.gear1) {
+        extraGearsState.gear1.position.set(0, 0, extraGearsState.gear1Z);
+        extraGearsState.gear1.rotation.z = extraGearsState.gear1Rotation;
+      }
+      if (extraGearsState.gear2) {
+        extraGearsState.gear2.position.set(0, 0, extraGearsState.gear2Z);
+        extraGearsState.gear2.rotation.z = extraGearsState.gear2Rotation;
+      }
+    }
+
     if (modelState.mesh) {
       // O modelo agora não gira sozinho no eixo Y; a câmera que orbita todo o mundo 3D
       modelState.mesh.rotation.y = 0;
 
-      // Rotação pura do disco no eixo Z em torno do próprio eixo central (mantido via scroll/pullState)
+      // Rotação no eixo Z com suporte à contrarrotação da animação da equipe
       const rollAngle = pullState.xAngle * 1.5;
-      modelState.mesh.rotation.z = -rollAngle;
+      modelState.mesh.rotation.z = extraGearsState.active
+        ? (extraGearsState.centralRotation - rollAngle)
+        : -rollAngle;
 
       // Posição estritamente estática no centro do espaço
       modelState.mesh.position.set(0, 0, 0);

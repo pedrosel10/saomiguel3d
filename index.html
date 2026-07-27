@@ -19,29 +19,121 @@
 </head>
 
 <body>
-  <!-- Localização e Descrição H2 no Canto Superior Esquerdo -->
-  <header class="header-brand">
-    <div class="header-location">
-      <span class="location-text">GRAMADO & CANELA</span>
+  <!-- Hero Section 3D -->
+  <div class="hero-section">
+    <!-- Localização e Descrição H2 no Canto Superior Esquerdo -->
+    <header class="header-brand">
+      <div class="header-location">
+        <span class="location-text">GRAMADO & CANELA</span>
+      </div>
+      <h2 class="brand-subtitle">
+        Serviços de engenharia integrando projeto, planejamento e gerenciamento de obras, engenharia estrutural e PPCI, da
+        viabilidade técnica à entrega, com inovação, sustentabilidade, transparência e total conformidade às normas.
+      </h2>
+    </header>
+
+    <!-- Título H1 no Canto Inferior Direito -->
+    <footer class="footer-description">
+      <!-- Gancho de Guindaste (Animação de Entrada) -->
+      <div id="crane-hook" class="crane-hook">
+        <img src="./gancho.webp" alt="Gancho de Guindaste" class="hook-image" />
+      </div>
+
+      <h1 id="brand-title" class="brand-title">Engenharia<br>e construção.</h1>
+    </footer>
+
+    <!-- Canvas 3D -->
+    <canvas id="webgl-canvas"></canvas>
+  </div>
+
+  <!-- Dobra Sobre a Equipe -->
+  <section id="team" class="section mod--about">
+    <!-- Botão Fechar / Voltar para a Experiência 3D -->
+    <button id="team-close-btn" class="team-close-btn" aria-label="Voltar para a tela inicial">
+      <span>VOLTAR</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+
+    <div data-observ="team" class="content">
+      
+      <!-- Cabeçalho da Dobra (Subtítulo + Título H2) -->
+      <div class="heading-wrap mod--team">
+        <div class="subheading-wrap mod--team">
+          <div class="subheading__line-wrap">
+            <div class="subheading__line"></div>
+          </div>
+          <div class="subheading__text">Sobre a equipe</div>
+        </div>
+        <h2 class="heading heading--size-38 team-heading-fix">
+          Desde 2008 garantindo segurança, previsibilidade e conformidade técnica.
+        </h2>
+      </div>
+
+      <!-- Colunas Principais da Dobra -->
+      <div class="team__columns">
+        
+        <!-- COLUNA 1: Foto Principal com revelação vertical -->
+        <div class="team__col col--1">
+          <div class="overflow-hidden mod--team-img1">
+            <img 
+              src="./foto_rodrigo.jpeg" 
+              loading="eager" 
+              alt="Engenheiro civil Rodrigo Selestrim, fundador da São Miguel Engenharia" 
+              srcset="./foto_rodrigo.jpeg 500w, ./foto_rodrigo.jpeg 782w"
+              sizes="(max-width: 479px) 90vw, (max-width: 767px) 288px, (max-width: 991px) 391px, 33vw"
+              class="team__img mod--1" 
+            />
+          </div>
+        </div>
+
+        <!-- COLUNA 2: Textos Sobre e Estatísticas -->
+        <div class="team__col col--2">
+          <div class="team__txt-wrap">
+            <div class="team__dot"></div>
+            
+            <p class="p mod--team">
+              Mais de uma década atuando com PPCI nos mostrou que um projeto eficiente vai além
+              de cumprir normas e aprovar documentos. A qualidade está em funcionar na prática: com clareza,
+              viabilidade de execução e alinhamento com a realidade do empreendimento.
+            </p>
+            
+            <p class="p">
+              Com essa mentalidade, ampliamos nossa atuação para projetos completos de Engenharia Civil.
+              Mesmo padrão de responsabilidade e controle, agora com uma visão mais ampla de obra, antecipando
+              conflitos e organizando cada etapa com método. Atendemos Canela, Gramado e todo o Rio Grande do Sul.
+            </p>
+            
+            <!-- Bloco de Estatísticas (+18 anos e +1K clientes) -->
+            <div class="team__advant">
+              <!-- Estatística 1 -->
+              <div class="overflow-hidden">
+                <div class="team__advant-txt-wrap">
+                  <div class="team__advant-txt mod--total">18</div>
+                  <div class="team__advant-txt">anos de <br />experiência</div>
+                </div>
+              </div>
+              
+              <!-- Divisor Diagonal -->
+              <div class="team__advant-separate"></div>
+              
+              <!-- Estatística 2 -->
+              <div class="overflow-hidden">
+                <div class="team__advant-txt-wrap">
+                  <div class="team__advant-txt mod--total">+1K</div>
+                  <div class="team__advant-txt">clientes<br /> atendidos</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
     </div>
-    <h2 class="brand-subtitle">
-      Serviços de engenharia integrando projeto, planejamento e gerenciamento de obras, engenharia estrutural e PPCI, da
-      viabilidade técnica à entrega, com inovação, sustentabilidade, transparência e total conformidade às normas.
-    </h2>
-  </header>
-
-  <!-- Título H1 no Canto Inferior Direito -->
-  <footer class="footer-description">
-    <!-- Gancho de Guindaste (Animação de Entrada) -->
-    <div id="crane-hook" class="crane-hook">
-      <img src="./gancho.webp" alt="Gancho de Guindaste" class="hook-image" />
-    </div>
-
-    <h1 id="brand-title" class="brand-title">Engenharia<br>e construção.</h1>
-  </footer>
-
-  <!-- Canvas 3D -->
-  <canvas id="webgl-canvas"></canvas>
+  </section>
 
   <!-- Tela de Carregamento Orbital (Preta & Levíssima) -->
   <div id="loader-screen" class="loader-container loader-orbital">

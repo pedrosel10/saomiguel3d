@@ -325,9 +325,9 @@ export function setupCallouts(scene, camera, renderer, modelState) {
   }
 
   // Animação Holográfica de Entrada dos Cards e Linhas
-  function animateIn() {
+  function animateIn(delay = 1.0) {
     // Timeline máster
-    const tl = gsap.timeline({ delay: 1.0 });
+    const tl = gsap.timeline({ delay });
 
     // 1. Preenchimento Holográfico por Varredura nas Linhas 3D
     tl.to(lineUniforms.uBuildProgress, {
@@ -346,7 +346,7 @@ export function setupCallouts(scene, camera, renderer, modelState) {
       element.style.opacity = '1';
 
       // Momento exato em que a linha 3D chega ao card específico
-      const cardStartTime = 1.1 + index * 0.18;
+      const cardStartTime = 0.3 + index * 0.18;
 
       if (contentBox && scanLine) {
         const revealState = { progress: 0 }; // 0% (cortado) -> 100% (revelado)
@@ -396,9 +396,64 @@ export function setupCallouts(scene, camera, renderer, modelState) {
     return tl;
   }
 
+  // Animação Holográfica de Saída (Reversa) dos Cards e Linhas 3D
+  function animateOut(delay = 0.0) {
+    const tl = gsap.timeline({ delay });
+
+    // 1. Apagar primeiro as letras dos títulos em ordem cadenciada
+    calloutElements.forEach(({ element }, index) => {
+      const contentBox = element.querySelector('.callout-content-box');
+      const scanLine = element.querySelector('.holo-scan-line');
+      const charElements = Array.from(element.querySelectorAll('.callout-title .char:not(.space)'));
+
+      if (charElements.length > 0) {
+        tl.to(charElements, {
+          opacity: 0,
+          y: 3,
+          duration: 0.25,
+          stagger: 0.02,
+          ease: 'power2.in'
+        }, index * 0.06);
+      }
+
+      // 2. Colapso reverso do box do card de cima para baixo com linha laser de varredura
+      if (contentBox && scanLine) {
+        const collapseState = { progress: 100 }; // 100% (revelado) -> 0% (cortado)
+
+        tl.to(scanLine, { opacity: 1, duration: 0.06 }, 0.15 + index * 0.06);
+
+        tl.to(collapseState, {
+          progress: 0,
+          duration: 0.45,
+          ease: 'power2.in',
+          onUpdate: () => {
+            const insetTop = 100 - collapseState.progress;
+            contentBox.style.clipPath = `inset(${insetTop}% 0 0 0)`;
+            scanLine.style.top = `${insetTop}%`;
+          },
+          onComplete: () => {
+            element.style.opacity = '0';
+          }
+        }, 0.15 + index * 0.06);
+
+        tl.to(scanLine, { opacity: 0, duration: 0.12 }, 0.5 + index * 0.06);
+      }
+    });
+
+    // 3. Retração das Linhas 3D de volta para o centro da engrenagem (1.0 -> 0.0)
+    tl.to(lineUniforms.uBuildProgress, {
+      value: 0.0,
+      duration: 0.85,
+      ease: 'power2.inOut'
+    }, 0.25);
+
+    return tl;
+  }
+
   return {
     update: updatePositions,
     animateIn,
+    animateOut,
     lineUniforms
   };
 }
