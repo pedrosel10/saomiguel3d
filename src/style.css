@@ -884,8 +884,10 @@ kbd {
   color: #ffffff;
   overflow-y: auto;
   overflow-x: hidden;
-  transform: translateY(100vh);
+  transform: translate3d(0, 100vh, 0);
   will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   -webkit-overflow-scrolling: touch;
   font-family: 'Inter', sans-serif;
 }
@@ -1005,7 +1007,7 @@ kbd {
   font-family: 'Inria Serif', serif;
   font-size: 38px;
   line-height: 45px;
-  font-weight: 700;
+  font-weight: 300;
   letter-spacing: -0.5px;
 }
 

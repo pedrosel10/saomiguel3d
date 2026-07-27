@@ -267,6 +267,8 @@ function init() {
   function triggerEquipeGearAnimation() {
     if (!modelState.mesh) return;
 
+    const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+
     // Desfazer os cards e linhas holográficas em animação reversa antes de subir a dobra
     if (callouts && callouts.animateOut) {
       callouts.animateOut(0.0);
@@ -279,6 +281,22 @@ function init() {
 
       const g2 = new THREE.Group();
       g2.add(meshSource.clone(true));
+
+      // No mobile, desativar sombras extras nas engrenagens duplicadas para alta performance (60fps)
+      if (isMobile) {
+        g1.traverse(child => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = false;
+          }
+        });
+        g2.traverse(child => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = false;
+          }
+        });
+      }
 
       g1.visible = false;
       g2.visible = false;
@@ -295,9 +313,9 @@ function init() {
     extraGearsState.gear1.visible = true;
     extraGearsState.gear2.visible = true;
 
-    // As engrenagens iniciam fora da tela no eixo Z (uma bem na frente +35.0, outra bem atrás -35.0)
-    const OFFSCREEN_FAR_Z = 35.0;
-    const TARGET_OFFSET_Z = 2.2;
+    // Distâncias calibradas (no mobile, percurso Z mais compacto e responsivo)
+    const OFFSCREEN_FAR_Z = isMobile ? 14.0 : 35.0;
+    const TARGET_OFFSET_Z = isMobile ? 1.8 : 2.2;
 
     extraGearsState.gear1Z = OFFSCREEN_FAR_Z;
     extraGearsState.gear2Z = -OFFSCREEN_FAR_Z;
@@ -309,21 +327,21 @@ function init() {
     tl.to(extraGearsState, {
       gear1Z: TARGET_OFFSET_Z,
       gear2Z: -TARGET_OFFSET_Z,
-      duration: 1.6,
+      duration: isMobile ? 1.1 : 1.6,
       ease: 'power3.out'
     }, 0);
 
     // 2. Aceleram a rotação em sentidos opostos durante a aproximação
     tl.to(extraGearsState, {
-      spinSpeed: 3.8,
-      duration: 1.8,
+      spinSpeed: isMobile ? 3.2 : 3.8,
+      duration: isMobile ? 1.2 : 1.8,
       ease: 'power2.inOut'
     }, 0.1);
 
-    // 3. Após se posicionarem no centro e iniciarem a contrarrotação, dispara a subida da dobra (espera maior)
+    // 3. Após se posicionarem no centro e iniciarem a contrarrotação, dispara a subida da dobra
     tl.add(() => {
       animateFoldSlideUp();
-    }, 1.35);
+    }, isMobile ? 0.75 : 1.35);
   }
 
   // Animação 3D de saída das 2 engrenagens voltando para fora da tela
@@ -332,12 +350,14 @@ function init() {
       return;
     }
 
+    const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+
     // Fazer os cards e linhas reconstruírem-se e reaparecerem na tela inicial
     if (callouts && callouts.animateIn) {
-      callouts.animateIn(0.5);
+      callouts.animateIn(isMobile ? 0.2 : 0.5);
     }
 
-    const OFFSCREEN_FAR_Z = 35.0;
+    const OFFSCREEN_FAR_Z = isMobile ? 14.0 : 35.0;
 
     // Calcular a próxima volta completa (múltiplo exato de 2 * PI) para a engrenagem central parar suavemente na posição inicial
     const TWO_PI = Math.PI * 2;
@@ -360,17 +380,17 @@ function init() {
     tl.to(extraGearsState, {
       gear1Z: OFFSCREEN_FAR_Z,
       gear2Z: -OFFSCREEN_FAR_Z,
-      duration: 1.5,
+      duration: isMobile ? 1.0 : 1.5,
       ease: 'power3.in'
-    }, 0.4);
+    }, isMobile ? 0.2 : 0.4);
 
     // 2. A velocidade desacelera suavemente até parar e a engrenagem central conclui a volta completa (360°)
     tl.to(extraGearsState, {
       spinSpeed: 0,
       centralRotation: targetCentralRot,
-      duration: 1.7,
+      duration: isMobile ? 1.2 : 1.7,
       ease: 'power2.out'
-    }, 0.2);
+    }, isMobile ? 0.1 : 0.2);
   }
 
   // Ouvinte de clique nos cards/callouts para abrir a Seção Equipe

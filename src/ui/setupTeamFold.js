@@ -6,10 +6,12 @@ export function animateFoldSlideUp() {
   const teamSection = document.getElementById('team');
   if (!teamSection) return;
 
+  const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+
   // Garante que o scroll interno do painel inicie no topo
   teamSection.scrollTop = 0;
 
-  // Animação GSAP do painel da equipe subindo como um overlay fixo de baixo para cima (100vh -> 0vh)
+  // Animação GSAP do painel da equipe subindo com aceleração por GPU (force3D)
   gsap.fromTo(
     teamSection,
     {
@@ -18,8 +20,9 @@ export function animateFoldSlideUp() {
     },
     {
       y: '0vh',
-      duration: 2.0,
-      ease: 'power2.inOut',
+      duration: isMobile ? 1.4 : 2.0,
+      ease: 'power2.out',
+      force3D: true,
       onStart: () => {
         if (triggerRevealFn) triggerRevealFn();
       }
@@ -31,11 +34,14 @@ export function animateFoldSlideDown() {
   const teamSection = document.getElementById('team');
   if (!teamSection) return;
 
-  // Animação GSAP do painel da equipe recolhendo de volta para o fundo da tela (0vh -> 100vh)
+  const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+
+  // Animação GSAP recolhendo o painel de volta para o fundo
   gsap.to(teamSection, {
     y: '100vh',
-    duration: 1.3,
-    ease: 'power2.inOut'
+    duration: isMobile ? 1.0 : 1.3,
+    ease: 'power2.inOut',
+    force3D: true
   });
 }
 
