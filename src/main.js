@@ -256,6 +256,56 @@ function init() {
         sparksEffect = setupSparks(scene, buildUniforms);
       }
 
+      // Pré-inicializar e pré-compilar no VRAM todas as engrenagens duplicadas e luzes azuis durante a tela de carregamento principal
+      const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
+      const meshSource = loadedModel.children[0] || loadedModel;
+
+      const createInnerBlueLight = () => {
+        const light = new THREE.PointLight(0x0066ff, 136.0, 1.5, 2.0);
+        light.position.set(-0.2, -0.1, -0.5);
+        light.castShadow = false;
+        return light;
+      };
+
+      if (!extraGearsState.gear1) {
+        const g1 = new THREE.Group();
+        g1.add(meshSource.clone(true));
+        g1.add(createInnerBlueLight());
+        if (isMobileDevice) g1.traverse(child => { if (child.isMesh) { child.castShadow = false; child.receiveShadow = false; } });
+        g1.visible = false;
+        scene.add(g1);
+        extraGearsState.gear1 = g1;
+      }
+
+      if (!extraGearsState.gear2) {
+        const g2 = new THREE.Group();
+        g2.add(meshSource.clone(true));
+        g2.add(createInnerBlueLight());
+        if (isMobileDevice) g2.traverse(child => { if (child.isMesh) { child.castShadow = false; child.receiveShadow = false; } });
+        g2.visible = false;
+        scene.add(g2);
+        extraGearsState.gear2 = g2;
+      }
+
+      if (!isMobileDevice) {
+        if (!extraGearsState.gear3) {
+          const g3 = new THREE.Group();
+          g3.add(meshSource.clone(true));
+          g3.add(createInnerBlueLight());
+          g3.visible = false;
+          scene.add(g3);
+          extraGearsState.gear3 = g3;
+        }
+        if (!extraGearsState.gear4) {
+          const g4 = new THREE.Group();
+          g4.add(meshSource.clone(true));
+          g4.add(createInnerBlueLight());
+          g4.visible = false;
+          scene.add(g4);
+          extraGearsState.gear4 = g4;
+        }
+      }
+
       // Ocultar tela de carregamento e iniciar a sequência de animação 3D de entrada em seguida
       ui.hideLoader(() => {
         // Executar Animações GSAP de Entrada da Câmera, Holograma e Luzes
@@ -282,54 +332,6 @@ function init() {
     // Desfazer os cards e linhas holográficas em animação reversa antes de subir a dobra
     if (callouts && callouts.animateOut) {
       callouts.animateOut(0.0);
-    }
-
-    const meshSource = modelState.mesh.children[0] || modelState.mesh;
-
-    const createInnerBlueLight = () => {
-      const light = new THREE.PointLight(0x0066ff, 136.0, 1.5, 2.0);
-      light.position.set(-0.2, -0.1, -0.5);
-      light.castShadow = false;
-      return light;
-    };
-
-    if (!extraGearsState.gear1) {
-      const g1 = new THREE.Group();
-      g1.add(meshSource.clone(true));
-      g1.add(createInnerBlueLight());
-      if (isMobile) g1.traverse(child => { if (child.isMesh) { child.castShadow = false; child.receiveShadow = false; } });
-      g1.visible = false;
-      scene.add(g1);
-      extraGearsState.gear1 = g1;
-    }
-
-    if (!extraGearsState.gear2) {
-      const g2 = new THREE.Group();
-      g2.add(meshSource.clone(true));
-      g2.add(createInnerBlueLight());
-      if (isMobile) g2.traverse(child => { if (child.isMesh) { child.castShadow = false; child.receiveShadow = false; } });
-      g2.visible = false;
-      scene.add(g2);
-      extraGearsState.gear2 = g2;
-    }
-
-    if (!isMobile) {
-      if (!extraGearsState.gear3) {
-        const g3 = new THREE.Group();
-        g3.add(meshSource.clone(true));
-        g3.add(createInnerBlueLight());
-        g3.visible = false;
-        scene.add(g3);
-        extraGearsState.gear3 = g3;
-      }
-      if (!extraGearsState.gear4) {
-        const g4 = new THREE.Group();
-        g4.add(meshSource.clone(true));
-        g4.add(createInnerBlueLight());
-        g4.visible = false;
-        scene.add(g4);
-        extraGearsState.gear4 = g4;
-      }
     }
 
     extraGearsState.active = true;

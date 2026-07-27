@@ -8,45 +8,94 @@ export function setupUI({ camera, controls, lights, shadowFloorMat, modelState, 
 
   const startTime = performance.now();
 
-  // Atualizador de progresso da sequência Orbital
-  const updateProgress = (percent) => {
-    const orbit2 = document.getElementById('orbit-2');
-    const orbit3 = document.getElementById('orbit-3');
+  // Matriz da Silhueta do Prédio (7 colunas x 9 linhas = 39 blocos ativos)
+  const BUILDING_MATRIX = [
+    [0, 0, 0, 1, 0, 0, 0], // Topo / Spire Tip
+    [0, 0, 0, 1, 0, 0, 0], // Haste Antena
+    [0, 0, 1, 1, 1, 0, 0], // Coroa da Torre
+    [0, 0, 1, 1, 1, 0, 0], // Torre Superior
+    [0, 1, 1, 1, 1, 1, 0], // Corpo Médio
+    [0, 1, 1, 1, 1, 1, 0], // Corpo Médio
+    [1, 1, 1, 1, 1, 1, 1], // Base Principal
+    [1, 1, 1, 1, 1, 1, 1], // Base Principal
+    [1, 1, 1, 1, 1, 1, 1]  // Térreo
+  ];
 
-    // Revelar órbita 2 (2 pontos) a partir de 30%
-    if (orbit2 && percent >= 30) {
-      orbit2.classList.add('active');
+  const buildingGrid = document.getElementById('building-grid');
+  const activeBlockElements = [];
+
+  if (buildingGrid) {
+    buildingGrid.innerHTML = '';
+    
+    const rows = BUILDING_MATRIX.length;
+    const cols = BUILDING_MATRIX[0].length;
+    const cellMap = {};
+
+    // Criar elementos no grid DOM
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const cell = document.createElement('div');
+        const isActive = BUILDING_MATRIX[r][c] === 1;
+        cell.className = isActive ? 'building-cell cell--block' : 'building-cell cell--empty';
+        buildingGrid.appendChild(cell);
+        if (isActive) {
+          cellMap[`${r}_${c}`] = cell;
+        }
+      }
     }
 
-    // Revelar órbita 3 (3 pontos) a partir de 65%
-    if (orbit3 && percent >= 65) {
-      orbit3.classList.add('active');
+    // Lista ordenada de blocos da base para o topo (construção andar por andar)
+    for (let r = rows - 1; r >= 0; r--) {
+      for (let c = 0; c < cols; c++) {
+        if (BUILDING_MATRIX[r][c] === 1) {
+          activeBlockElements.push(cellMap[`${r}_${c}`]);
+        }
+      }
     }
+  }
+
+  const totalBlocks = activeBlockElements.length;
+
+  // Atualizador de progresso da Matriz Minimalista do Prédio
+  const updateProgress = (targetPercent) => {
+    const clamped = Math.min(100, Math.max(0, targetPercent));
+    const filledCount = Math.floor((clamped / 100) * totalBlocks);
+
+    activeBlockElements.forEach((blockEl, idx) => {
+      if (idx < filledCount) {
+        blockEl.classList.add('is-filled');
+      } else {
+        blockEl.classList.remove('is-filled');
+      }
+    });
   };
 
-  // Esconder loader após carregar e executar a animação de entrada 0.1s antes da saída do loader
+  // Esconder loader após carregar e preencher todos os blocos do prédio
   const hideLoader = (onComplete) => {
     if (!loaderScreen) {
       if (onComplete) onComplete();
       return;
     }
 
-    // Estágios sequenciais das órbitas
-    setTimeout(() => updateProgress(40), 500);
-    setTimeout(() => updateProgress(75), 1100);
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += (100 - progress) * 0.12 + 1.2;
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(interval);
+      }
+      updateProgress(progress);
+    }, 35);
 
-    const MIN_LOADER_DURATION = 2200; // ~2.2 segundos para exibição completa
+    const MIN_LOADER_DURATION = 2200; // ~2.2 segundos para exibição da construção
     const elapsed = performance.now() - startTime;
     const remainingTime = Math.max(0, MIN_LOADER_DURATION - elapsed);
-
-    // Disparar animação de entrada 3D 0.1s (100ms) ANTES da saída do loader
     const startAnimTime = Math.max(0, remainingTime - 100);
 
     setTimeout(() => {
       if (onComplete) onComplete();
     }, startAnimTime);
 
-    // Desvanecer o loader 0.1s depois
     setTimeout(() => {
       updateProgress(100);
       loaderScreen.classList.add('hidden');
