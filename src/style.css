@@ -887,7 +887,7 @@ kbd {
   transform: translateY(100vh);
   will-change: transform;
   -webkit-overflow-scrolling: touch;
-  font-family: 'AvertaStdPE', 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 /* Botão Voltar/Fechar no Topo da Seção Equipe */
@@ -988,9 +988,11 @@ kbd {
   position: relative;
   display: block;
   overflow: hidden;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
   color: #ffffff;
 }
 
@@ -1000,9 +1002,11 @@ kbd {
 }
 
 .heading.heading--size-38 {
+  font-family: 'Inria Serif', serif;
   font-size: 38px;
   line-height: 45px;
-  font-weight: 400;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 /* --- COLUNAS DO TIME --- */
@@ -1062,9 +1066,11 @@ kbd {
 }
 
 .p {
+  font-family: 'Inter', sans-serif;
   font-size: 16px;
+  font-weight: 400;
   line-height: 1.8em;
-  color: #ffffff;
+  color: #cbd5e1;
 }
 
 .p.mod--team {
@@ -1086,7 +1092,9 @@ kbd {
   overflow: visible;
   align-items: flex-end;
   color: #999999;
+  font-family: 'Inter', sans-serif;
   font-size: 16px;
+  font-weight: 500;
   transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -1094,6 +1102,7 @@ kbd {
   margin-right: 8px;
   margin-bottom: -2px;
   color: #ffffff;
+  font-family: 'Inria Serif', serif;
   font-size: 80px;
   line-height: 70px;
   font-weight: 700;
