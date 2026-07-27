@@ -892,6 +892,17 @@ kbd {
   font-family: 'Inter', sans-serif;
 }
 
+/* Canvas 3D Dedicado para as Engrenagens da Dobra Equipe (100% Fixo na Viewport) */
+.team-webgl-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 205;
+}
+
 /* Botão Voltar/Fechar no Topo da Seção Equipe */
 .team-close-btn {
   position: fixed;
@@ -929,7 +940,7 @@ kbd {
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 1300px;
+  max-width: 620px;
   margin-right: auto;
   margin-left: auto;
 }
@@ -941,14 +952,16 @@ kbd {
 /* --- CABEÇALHO (SUBTÍTULO + H2) --- */
 .heading-wrap.mod--team {
   display: flex;
-  max-width: 1040px;
-  margin-bottom: 96px;
+  flex-direction: column;
   align-items: flex-start;
+  gap: 20px;
+  max-width: 100%;
+  margin-bottom: 64px;
 }
 
 @media screen and (min-width: 992px) {
   .team-heading-fix {
-    max-width: 750px !important;
+    max-width: 100% !important;
     flex-shrink: 0;
   }
 }
@@ -958,7 +971,7 @@ kbd {
   display: flex;
   min-width: 152px;
   margin-top: 4px;
-  margin-right: 72px;
+  margin-right: 0;
   align-items: center;
   flex: 0 0 auto;
   text-transform: uppercase;
@@ -966,7 +979,7 @@ kbd {
 }
 
 .subheading-wrap.mod--team {
-  margin-top: 6px;
+  margin-top: 0;
 }
 
 .subheading__line-wrap {
@@ -1005,36 +1018,43 @@ kbd {
 
 .heading.heading--size-38 {
   font-family: 'Inria Serif', serif;
-  font-size: 38px;
-  line-height: 45px;
+  font-size: 36px;
+  line-height: 46px;
   font-weight: 300;
   letter-spacing: -0.5px;
 }
 
-/* --- COLUNAS DO TIME --- */
+/* --- COLUNAS DO TIME (Fluxo Vertical Centralizado) --- */
 .team__columns {
   display: flex;
-  justify-content: flex-start;
-  align-items: flex-end;
-  gap: 80px;
+  flex-direction: column;
+  align-items: center;
+  gap: 56px;
+  width: 100%;
 }
 
 .team__col {
   position: relative;
+  width: 100%;
 }
 
 /* Coluna 1 (Foto Rodrigo) */
 .team__col.col--1 {
   display: flex;
   justify-content: center;
-  align-items: flex-end;
+  align-items: flex-center;
   flex: 0 0 auto;
+  width: 100%;
 }
 
 .overflow-hidden.mod--team-img1 {
   display: flex;
-  min-height: 540px;
+  width: 100%;
+  max-width: 380px;
+  min-height: 460px;
   align-items: flex-end;
+  justify-content: center;
+  border-radius: 8px;
 }
 
 .team__img {
@@ -1045,24 +1065,26 @@ kbd {
 }
 
 .team__img.mod--1 {
-  width: 391px;
+  width: 100%;
+  max-width: 380px;
+  border-radius: 8px;
 }
 
 /* Coluna 2 (Textos e Stats) */
 .team__col.col--2 {
-  flex: 1;
-  max-width: 650px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .team__txt-wrap {
-  max-width: 500px;
+  max-width: 100%;
   transition: opacity 1s ease;
 }
 
 .team__dot {
   width: 12px;
   height: 12px;
-  margin-bottom: 40px;
+  margin-bottom: 32px;
   border-radius: 100px;
   background-color: #1a2bc2;
 }
@@ -1082,7 +1104,7 @@ kbd {
 /* Estatísticas */
 .team__advant {
   display: flex;
-  margin-top: 98px;
+  margin-top: 64px;
   margin-bottom: 25px;
   justify-content: flex-start;
   align-items: flex-end;

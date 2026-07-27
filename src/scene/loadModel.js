@@ -171,15 +171,6 @@ export function loadModel(scene, onProgress, onLoad, onError) {
               );
             }
           }
-
-          // Realce sutil de brilho azul profundo no metal sob a lente de Raio-X do mouse
-          if (uHoverProgress > 0.001) {
-            float distToMouse = distance(vWorldPosition, uHoverPoint);
-            float xrayField = smoothstep(2.5, 0.1, distToMouse);
-            vec3 cyanHighlight = vec3(0.0, 0.65, 1.0);
-            float glowAmount = (0.12 + xrayField * 0.48) * uHoverProgress;
-            gl_FragColor.rgb = mix(gl_FragColor.rgb, cyanHighlight * 1.8, glowAmount * 0.30);
-          }
           `
         );
       };

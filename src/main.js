@@ -11,6 +11,7 @@ import { setupSparks } from './effects/setupSparks.js';
 import { preloadSmoke } from './effects/landingSmoke.js';
 import { setupCallouts } from './ui/setupCallouts.js';
 import { setupTeamFold, animateFoldSlideUp, animateFoldSlideDown } from './ui/setupTeamFold.js';
+import { setupTeamGears } from './scene/setupTeamGears.js';
 
 function init() {
   const canvas = document.getElementById('webgl-canvas');
@@ -21,6 +22,9 @@ function init() {
 
   // 2. Configurar Iluminação HDRI e Luz Azul Interna
   const lights = setupLights(scene, renderer);
+
+  // 2b. Configurar Módulo Dedicado de Engrenagens da Equipe (Câmera Frontal Direta)
+  const teamGears = setupTeamGears();
 
   // 2b. Pré-carregar fumaça 3D (texturas + renderer + warm-up GPU) durante o loading
   preloadSmoke();
@@ -150,6 +154,42 @@ function init() {
   });
 
   setupTeamFold();
+
+  // Ouvinte de scroll na dobra da Equipe para girar interativamente as engrenagens 3D laterais
+  const teamSection = document.getElementById('team');
+  let lastTeamScrollTop = 0;
+
+  if (teamSection) {
+    teamSection.addEventListener('scroll', () => {
+      if (!teamGearsState.active) return;
+      const currentScrollTop = teamSection.scrollTop;
+      const deltaY = currentScrollTop - lastTeamScrollTop;
+      lastTeamScrollTop = currentScrollTop;
+
+      teamGearsState.scrollVelocity += deltaY * 0.0035;
+    }, { passive: true });
+
+    teamSection.addEventListener('wheel', (event) => {
+      if (!teamGearsState.active) return;
+      teamGearsState.scrollVelocity += event.deltaY * 0.0025;
+    }, { passive: true });
+
+    let touchTeamStartY = 0;
+    teamSection.addEventListener('touchstart', (event) => {
+      if (event.touches.length > 0) {
+        touchTeamStartY = event.touches[0].clientY;
+      }
+    }, { passive: true });
+
+    teamSection.addEventListener('touchmove', (event) => {
+      if (!teamGearsState.active || event.touches.length === 0) return;
+      const touchY = event.touches[0].clientY;
+      const deltaY = touchTeamStartY - touchY;
+      touchTeamStartY = touchY;
+
+      teamGearsState.scrollVelocity += deltaY * 0.004;
+    }, { passive: true });
+  }
 
   // 5. Carregar Modelo 3D (smlogo3d.glb)
   loadModel(
@@ -306,6 +346,11 @@ function init() {
         }
       }
 
+      // Inicializar engrenagens 3D com visão frontal direta no canvas dedicado da equipe
+      if (teamGears && teamGears.initGears) {
+        teamGears.initGears(loadedModel.children[0] || loadedModel);
+      }
+
       // Ocultar tela de carregamento e iniciar a sequência de animação 3D de entrada em seguida
       ui.hideLoader(() => {
         // Executar Animações GSAP de Entrada da Câmera, Holograma e Luzes
@@ -332,6 +377,11 @@ function init() {
     // Desfazer os cards e linhas holográficas em animação reversa antes de subir a dobra
     if (callouts && callouts.animateOut) {
       callouts.animateOut(0.0);
+    }
+
+    // Revelar as engrenagens 3D com visão frontal no canvas da equipe
+    if (teamGears && teamGears.show) {
+      teamGears.show();
     }
 
     extraGearsState.active = true;
@@ -421,6 +471,10 @@ function init() {
 
     const OFFSCREEN_FAR_Z1 = isMobile ? 14.0 : 35.0;
     const OFFSCREEN_FAR_Z2 = 55.0;
+
+    if (teamGears && teamGears.hide) {
+      teamGears.hide();
+    }
 
     // Calcular a próxima volta completa (múltiplo exato de 2 * PI) para a engrenagem central parar suavemente na posição inicial
     const TWO_PI = Math.PI * 2;
@@ -543,6 +597,8 @@ function init() {
       camera.position.copy(camPos);
       camera.lookAt(0, 0, 0);
     }
+
+
 
     if (extraGearsState.active) {
       const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
