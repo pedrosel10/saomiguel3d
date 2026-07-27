@@ -491,8 +491,9 @@ function init() {
       ui.updateLevelGauge(mouse.x);
     }
 
-    // Raycasting para detectar hover e interseção 3D no modelo (revelação do Raio-X)
-    if (modelState.mesh && camera) {
+    // Raycasting para detectar hover e interseção 3D no modelo (revelação do Raio-X estritamente em Desktop)
+    const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
+    if (!isMobileDevice && modelState.mesh && camera) {
       mouseNDC.set(mouse.targetX, mouse.targetY);
       hoverRaycaster.setFromCamera(mouseNDC, camera);
       const intersects = hoverRaycaster.intersectObject(modelState.mesh, true);

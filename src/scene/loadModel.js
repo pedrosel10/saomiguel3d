@@ -257,11 +257,14 @@ export function loadModel(scene, onProgress, onLoad, onError) {
           child.receiveShadow = true;
           child.layers.enable(1);
 
-          // Criar a malha wireframe do esqueleto estrutural sobreposta à malha original
-          const wireframeGeo = new THREE.WireframeGeometry(child.geometry);
-          const wireframeMesh = new THREE.LineSegments(wireframeGeo, wireframeMat);
-          wireframeMesh.name = 'WireframeSkeleton';
-          child.add(wireframeMesh);
+          // Criar a malha wireframe do esqueleto estrutural (apenas em desktop para otimizar 100% o mobile)
+          const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
+          if (!isMobileDevice) {
+            const wireframeGeo = new THREE.WireframeGeometry(child.geometry);
+            const wireframeMesh = new THREE.LineSegments(wireframeGeo, wireframeMat);
+            wireframeMesh.name = 'WireframeSkeleton';
+            child.add(wireframeMesh);
+          }
         }
       });
 
