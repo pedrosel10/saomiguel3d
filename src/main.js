@@ -339,10 +339,6 @@ function init() {
       } else {
         hoverState.isHovered = false;
       }
-
-      if (canvas) {
-        canvas.style.cursor = hoverState.isHovered ? 'crosshair' : 'default';
-      }
     }
 
     // Suavização do indicador de progresso de hover do Raio-X
