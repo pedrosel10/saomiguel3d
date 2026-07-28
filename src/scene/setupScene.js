@@ -28,7 +28,7 @@ export function setupScene(canvas) {
     precision: 'highp'
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  const maxDPR = Math.min(window.devicePixelRatio, 1.75);
+  const maxDPR = Math.min(window.devicePixelRatio, 1.5);
   renderer.setPixelRatio(maxDPR);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Sombras macias e de alta definição

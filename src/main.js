@@ -586,7 +586,7 @@ function init() {
     updateResponsiveCamera(camera, scene, floor, shadowFloor);
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    const maxDPR = Math.min(window.devicePixelRatio, 1.75);
+    const maxDPR = Math.min(window.devicePixelRatio, 1.5);
     renderer.setPixelRatio(maxDPR);
   });
 

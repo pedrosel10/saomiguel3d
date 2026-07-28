@@ -26,11 +26,12 @@ export function setupLights(scene, renderer) {
   const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
   keyLight.position.set(4.0, 8.0, 6.0);
   keyLight.castShadow = true;
-  const shadowSize = 1024;
+  const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
+  const shadowSize = isMobileDevice ? 512 : 1024;
   keyLight.shadow.mapSize.set(shadowSize, shadowSize);
   keyLight.shadow.bias = -0.0005;
   keyLight.shadow.normalBias = 0.02;
-  keyLight.shadow.radius = 4.0;
+  keyLight.shadow.radius = isMobileDevice ? 3.0 : 4.0;
   keyLight.shadow.camera.left = -6;
   keyLight.shadow.camera.right = 6;
   keyLight.shadow.camera.top = 6;
