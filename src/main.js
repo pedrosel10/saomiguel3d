@@ -307,25 +307,25 @@ function init() {
         return clone;
       };
 
+      if (!extraGearsState.gear1) {
+        const g1 = new THREE.Group();
+        g1.add(cloneExtraMesh(meshSource));
+        g1.add(createInnerBlueLight());
+        g1.visible = false;
+        scene.add(g1);
+        extraGearsState.gear1 = g1;
+      }
+
+      if (!extraGearsState.gear2) {
+        const g2 = new THREE.Group();
+        g2.add(cloneExtraMesh(meshSource));
+        g2.add(createInnerBlueLight());
+        g2.visible = false;
+        scene.add(g2);
+        extraGearsState.gear2 = g2;
+      }
+
       if (!isMobileDevice) {
-        if (!extraGearsState.gear1) {
-          const g1 = new THREE.Group();
-          g1.add(cloneExtraMesh(meshSource));
-          g1.add(createInnerBlueLight());
-          g1.visible = false;
-          scene.add(g1);
-          extraGearsState.gear1 = g1;
-        }
-
-        if (!extraGearsState.gear2) {
-          const g2 = new THREE.Group();
-          g2.add(cloneExtraMesh(meshSource));
-          g2.add(createInnerBlueLight());
-          g2.visible = false;
-          scene.add(g2);
-          extraGearsState.gear2 = g2;
-        }
-
         if (!extraGearsState.gear3) {
           const g3 = new THREE.Group();
           g3.add(cloneExtraMesh(meshSource));
@@ -417,19 +417,11 @@ function init() {
       callouts.animateOut(0.0);
     }
 
-    if (isMobile) {
-      // No Mobile: Apenas gira a engrenagem principal com a velocidade suave e ative a dobra!
-      extraGearsState.active = true;
-      extraGearsState.spinSpeedCentral = 1.4;
-      isMainScenePaused = false;
-      gsap.delayedCall(0.5, () => {
-        animateFoldSlideUp(targetSectionId);
-      });
-      return;
-    }
+    extraGearsState.active = true;
+    extraGearsState.isExiting = false;
 
     // Definir posições de fora da tela PRIMEIRO antes de tornar as engrenagens visíveis
-    const OFFSCREEN_FAR_Z1 = 35.0;
+    const OFFSCREEN_FAR_Z1 = isMobile ? 14.0 : 35.0;
     const OFFSCREEN_FAR_Z2 = 55.0;
 
     extraGearsState.gear1Z = OFFSCREEN_FAR_Z1;
@@ -446,15 +438,15 @@ function init() {
       extraGearsState.gear2.visible = true;
     }
 
-    if (extraGearsState.gear3 && extraGearsState.gear4) {
+    if (!isMobile && extraGearsState.gear3 && extraGearsState.gear4) {
       extraGearsState.gear3.position.z = OFFSCREEN_FAR_Z2;
       extraGearsState.gear3.visible = true;
       extraGearsState.gear4.position.z = -OFFSCREEN_FAR_Z2;
       extraGearsState.gear4.visible = true;
     }
 
-    const TARGET_OFFSET_Z1 = 1.5; // Espaçamento calibrado (+1.5u)
-    const TARGET_OFFSET_Z2 = 3.0; // Espaçamento calibrado (+3.0u)
+    const TARGET_OFFSET_Z1 = isMobile ? 1.6 : 1.5; // Espaçamento calibrado (+1.5u)
+    const TARGET_OFFSET_Z2 = 3.0;                  // Espaçamento calibrado (+3.0u)
 
     extraGearsState.spinSpeed1 = 0;
     extraGearsState.spinSpeed2 = 0;
@@ -469,28 +461,42 @@ function init() {
     const animObj = {
       gear1Z: TARGET_OFFSET_Z1,
       gear2Z: -TARGET_OFFSET_Z1,
-      gear3Z: TARGET_OFFSET_Z2,
-      gear4Z: -TARGET_OFFSET_Z2,
-      duration: 0.9,
+      duration: isMobile ? 0.7 : 0.9,
       ease: 'power3.out'
     };
 
+    if (!isMobile) {
+      animObj.gear3Z = TARGET_OFFSET_Z2;
+      animObj.gear4Z = -TARGET_OFFSET_Z2;
+    }
+
     tl.to(extraGearsState, animObj, 0);
 
-    const TARGET_SPIN = 1.6;
+    const TARGET_SPIN = isMobile ? 1.4 : 1.6;
 
-    // 2. EFEITO DE ONDA: Onda sequencial cascateando do fundo para a frente APÓS o pouso estático no eixo (t = 0.5s)
-    const ARRIVAL_TIME = 0.5;
-    tl.to(extraGearsState, { spinSpeed4: TARGET_SPIN, duration: 1.0, ease: 'power2.out' }, ARRIVAL_TIME);
-    tl.to(extraGearsState, { spinSpeed2: TARGET_SPIN, duration: 1.0, ease: 'power2.out' }, ARRIVAL_TIME + 0.12);
-    tl.to(extraGearsState, { spinSpeedCentral: TARGET_SPIN, duration: 1.0, ease: 'power2.out' }, ARRIVAL_TIME + 0.24);
-    tl.to(extraGearsState, { spinSpeed1: TARGET_SPIN, duration: 1.0, ease: 'power2.out' }, ARRIVAL_TIME + 0.36);
-    tl.to(extraGearsState, { spinSpeed3: TARGET_SPIN, duration: 1.0, ease: 'power2.out' }, ARRIVAL_TIME + 0.48);
+    // 2. EFEITO DE ONDA: Apenas APÓS chegarem e encaixarem na posição no eixo, inicia o movimento giratório em onda
+    if (isMobile) {
+      tl.to(extraGearsState, {
+        spinSpeed1: TARGET_SPIN,
+        spinSpeed2: TARGET_SPIN,
+        spinSpeedCentral: TARGET_SPIN,
+        duration: 1.0,
+        ease: 'power2.inOut'
+      }, 0.5);
+    } else {
+      // Onda sequencial cascateando do fundo para a frente APÓS o pouso estático no eixo (t = 0.5s)
+      const ARRIVAL_TIME = 0.5;
+      tl.to(extraGearsState, { spinSpeed4: TARGET_SPIN, duration: 1.0, ease: 'power2.out' }, ARRIVAL_TIME);
+      tl.to(extraGearsState, { spinSpeed2: TARGET_SPIN, duration: 1.0, ease: 'power2.out' }, ARRIVAL_TIME + 0.12);
+      tl.to(extraGearsState, { spinSpeedCentral: TARGET_SPIN, duration: 1.0, ease: 'power2.out' }, ARRIVAL_TIME + 0.24);
+      tl.to(extraGearsState, { spinSpeed1: TARGET_SPIN, duration: 1.0, ease: 'power2.out' }, ARRIVAL_TIME + 0.36);
+      tl.to(extraGearsState, { spinSpeed3: TARGET_SPIN, duration: 1.0, ease: 'power2.out' }, ARRIVAL_TIME + 0.48);
+    }
 
     // 3. Após o movimento das engrenagens do eixo se estabelecer, dispara a subida cadenciada da dobra
     tl.add(() => {
       animateFoldSlideUp(targetSectionId);
-    }, 2.3);
+    }, isMobile ? 1.5 : 2.3);
   }
 
   // Animação 3D de saída sequencial das engrenagens voltando para fora da tela
@@ -506,24 +512,6 @@ function init() {
 
       if (callouts && callouts.animateIn) {
         callouts.animateIn(isMobile ? 0.2 : 0.5);
-      }
-
-      if (isMobile) {
-        // No Mobile: desacelerar o centro e zerar
-        const TWO_PI = Math.PI * 2;
-        const currentRot = extraGearsState.centralRotation;
-        const targetCentralRot = Math.round(currentRot / TWO_PI) * TWO_PI;
-
-        gsap.to(extraGearsState, {
-          spinSpeedCentral: 0,
-          centralRotation: targetCentralRot,
-          duration: 1.0,
-          ease: 'power2.out',
-          onComplete: () => {
-            extraGearsState.active = false;
-          }
-        });
-        return;
       }
 
       const OFFSCREEN_FAR_Z1 = isMobile ? 14.0 : 35.0;
