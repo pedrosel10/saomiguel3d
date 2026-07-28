@@ -27,7 +27,7 @@ export function setupTeamGears() {
     precision: 'highp'
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  const maxDPR = Math.min(window.devicePixelRatio, 1.5);
+  const maxDPR = Math.min(window.devicePixelRatio, 2.5);
   renderer.setPixelRatio(maxDPR);
 
   // 4. Iluminação Dedicada (Frontal + Luzes Azuis Internas)
