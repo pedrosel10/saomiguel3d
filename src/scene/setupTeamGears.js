@@ -226,6 +226,8 @@ export function setupTeamGears() {
       state.rotRight -= (slowSpin + state.scrollVelocity * 0.4);
       state.scrollVelocity *= 0.90; // Fricção fluida
 
+      const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+
       // Lerp ultra-suave e cadenciado do deslocamento de saída no limite (3.8% por frame no mobile para máxima fluidez)
       const lerpFactor = isMobile ? 0.038 : 0.08;
       state.scrollOffsetProgress += (state.targetScrollOffsetProgress - state.scrollOffsetProgress) * lerpFactor;
