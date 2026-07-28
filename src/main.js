@@ -349,14 +349,27 @@ function init() {
         teamGears.initGears(loadedModel.children[0] || loadedModel);
       }
 
-      // Pré-compilar no WebGL Main Renderer todos os materiais e PointLights das engrenagens extras
-      if (extraGearsState.gear1) extraGearsState.gear1.visible = true;
-      if (extraGearsState.gear2) extraGearsState.gear2.visible = true;
-      if (extraGearsState.gear3) extraGearsState.gear3.visible = true;
-      if (extraGearsState.gear4) extraGearsState.gear4.visible = true;
+      // Pré-compilar no WebGL Main Renderer todos os materiais, texturas e PointLights das engrenagens extras
+      if (extraGearsState.gear1) {
+        extraGearsState.gear1.position.z = 200;
+        extraGearsState.gear1.visible = true;
+      }
+      if (extraGearsState.gear2) {
+        extraGearsState.gear2.position.z = -200;
+        extraGearsState.gear2.visible = true;
+      }
+      if (extraGearsState.gear3) {
+        extraGearsState.gear3.position.z = 200;
+        extraGearsState.gear3.visible = true;
+      }
+      if (extraGearsState.gear4) {
+        extraGearsState.gear4.position.z = -200;
+        extraGearsState.gear4.visible = true;
+      }
 
       try {
         renderer.compile(scene, camera);
+        renderer.render(scene, camera); // Força compilação de texturas e shaders no VRAM no loading
       } catch (e) {
         console.warn('Pre-compile main renderer error:', e);
       }
@@ -404,27 +417,33 @@ function init() {
       callouts.animateOut(0.0);
     }
 
-    extraGearsState.active = true;
-    extraGearsState.isExiting = false;
-
-    extraGearsState.gear1.visible = true;
-    extraGearsState.gear2.visible = true;
-
-    if (!isMobile && extraGearsState.gear3 && extraGearsState.gear4) {
-      extraGearsState.gear3.visible = true;
-      extraGearsState.gear4.visible = true;
-    }
-
-    // Distâncias calibradas com espaçamento amplo e elegante entre as 5 engrenagens no desktop
+    // Definir posições de fora da tela PRIMEIRO antes de tornar as engrenagens visíveis
     const OFFSCREEN_FAR_Z1 = isMobile ? 14.0 : 35.0;
     const OFFSCREEN_FAR_Z2 = 55.0;
-    const TARGET_OFFSET_Z1 = isMobile ? 1.6 : 1.5; // Espaçamento calibrado (+1.5u)
-    const TARGET_OFFSET_Z2 = 3.0;                  // Espaçamento calibrado (+3.0u)
 
     extraGearsState.gear1Z = OFFSCREEN_FAR_Z1;
     extraGearsState.gear2Z = -OFFSCREEN_FAR_Z1;
     extraGearsState.gear3Z = OFFSCREEN_FAR_Z2;
     extraGearsState.gear4Z = -OFFSCREEN_FAR_Z2;
+
+    if (extraGearsState.gear1) {
+      extraGearsState.gear1.position.z = OFFSCREEN_FAR_Z1;
+      extraGearsState.gear1.visible = true;
+    }
+    if (extraGearsState.gear2) {
+      extraGearsState.gear2.position.z = -OFFSCREEN_FAR_Z1;
+      extraGearsState.gear2.visible = true;
+    }
+
+    if (!isMobile && extraGearsState.gear3 && extraGearsState.gear4) {
+      extraGearsState.gear3.position.z = OFFSCREEN_FAR_Z2;
+      extraGearsState.gear3.visible = true;
+      extraGearsState.gear4.position.z = -OFFSCREEN_FAR_Z2;
+      extraGearsState.gear4.visible = true;
+    }
+
+    const TARGET_OFFSET_Z1 = isMobile ? 1.6 : 1.5; // Espaçamento calibrado (+1.5u)
+    const TARGET_OFFSET_Z2 = 3.0;                  // Espaçamento calibrado (+3.0u)
 
     extraGearsState.spinSpeed1 = 0;
     extraGearsState.spinSpeed2 = 0;
