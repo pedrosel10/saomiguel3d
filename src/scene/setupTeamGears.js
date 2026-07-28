@@ -153,15 +153,14 @@ export function setupTeamGears() {
     updateGearPositions();
   });
 
-  // 7. Ouvinte de Scroll na Dobra Equipe (A saída só é disparada ao atingir o limite "0" do scroll da dobra)
+  // 7. Ouvinte de Scroll na Dobra Equipe (A saída só ocorre ao chegar no fim da dobra e retorna ao rolar para cima)
   const teamSection = document.getElementById('team');
-  let lastScrollTop = 0;
-  let overscrollProgress = 0;
+  let lastTeamScrollTop = 0;
   const MAX_SCROLL_SPEED = 0.025; // Teto de velocidade máxima de giro por scroll
 
   const clampSpeed = (val) => Math.max(-MAX_SCROLL_SPEED, Math.min(MAX_SCROLL_SPEED, val));
 
-  const updateScrollOffset = (deltaY = 0) => {
+  const updateScrollOffset = () => {
     if (!teamSection || !state.active) return;
     const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
     if (!isMobile) {
@@ -171,41 +170,30 @@ export function setupTeamGears() {
 
     const maxScroll = Math.max(1, teamSection.scrollHeight - teamSection.clientHeight);
     const currentScroll = teamSection.scrollTop;
-    const isAtBottom = (currentScroll >= maxScroll - 8);
 
-    if (isAtBottom && deltaY > 0) {
-      // Rolando para baixo no limite: extensão de scroll tirando as engrenagens da tela
-      overscrollProgress = Math.min(1.0, overscrollProgress + deltaY * 0.0035);
-    } else if (deltaY < 0 && overscrollProgress > 0) {
-      // Rolando para cima com engrenagens fora: traz as engrenagens de volta ANTES do texto subir
-      overscrollProgress = Math.max(0.0, overscrollProgress + deltaY * 0.0035);
-
-      // Mantém o texto no limite do fundo enquanto as engrenagens retornam
-      if (overscrollProgress > 0.01) {
-        teamSection.scrollTop = maxScroll;
-      }
-    } else if (currentScroll < maxScroll - 20 && overscrollProgress > 0) {
-      // Reset de segurança se o scroll pular para cima
-      overscrollProgress = Math.max(0.0, overscrollProgress - 0.1);
+    // Quando chega no limite inferior do scroll da dobra, as engrenagens saem da tela
+    if (currentScroll >= maxScroll - 12) {
+      state.targetScrollOffsetProgress = 1.0;
+    } else if (currentScroll < maxScroll - 30) {
+      // Quando rola para cima saindo do fim da dobra, as engrenagens retornam
+      state.targetScrollOffsetProgress = 0.0;
     }
-
-    state.targetScrollOffsetProgress = overscrollProgress;
   };
 
   if (teamSection) {
     teamSection.addEventListener('scroll', () => {
       if (!state.active) return;
+      updateScrollOffset();
       const currentScrollTop = teamSection.scrollTop;
-      const deltaY = currentScrollTop - lastScrollTop;
-      lastScrollTop = currentScrollTop;
+      const deltaY = currentScrollTop - lastTeamScrollTop;
+      lastTeamScrollTop = currentScrollTop;
 
-      updateScrollOffset(deltaY);
       state.scrollVelocity = clampSpeed(state.scrollVelocity + deltaY * 0.0005);
     }, { passive: true });
 
     teamSection.addEventListener('wheel', (event) => {
       if (!state.active) return;
-      updateScrollOffset(event.deltaY);
+      updateScrollOffset();
       state.scrollVelocity = clampSpeed(state.scrollVelocity + event.deltaY * 0.00035);
     }, { passive: true });
 
@@ -216,11 +204,11 @@ export function setupTeamGears() {
 
     teamSection.addEventListener('touchmove', (e) => {
       if (!state.active || e.touches.length === 0) return;
+      updateScrollOffset();
       const touchY = e.touches[0].clientY;
       const deltaY = touchStartY - touchY;
       touchStartY = touchY;
 
-      updateScrollOffset(deltaY);
       state.scrollVelocity = clampSpeed(state.scrollVelocity + deltaY * 0.0006);
     }, { passive: true });
   }
@@ -238,10 +226,10 @@ export function setupTeamGears() {
       state.rotRight -= (slowSpin + state.scrollVelocity * 0.4);
       state.scrollVelocity *= 0.90; // Fricção fluida
 
-      // Lerp ultra-suave do deslocamento de saída no limite (8% por frame)
-      state.scrollOffsetProgress += (state.targetScrollOffsetProgress - state.scrollOffsetProgress) * 0.08;
+      // Lerp ultra-suave e cadenciado do deslocamento de saída no limite (3.8% por frame no mobile para máxima fluidez)
+      const lerpFactor = isMobile ? 0.038 : 0.08;
+      state.scrollOffsetProgress += (state.targetScrollOffsetProgress - state.scrollOffsetProgress) * lerpFactor;
 
-      const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
       const exitDx = isMobile ? 4.5 : 0.0;
       const exitDy = isMobile ? 3.0 : 0.0;
       const offset = isMobile ? state.scrollOffsetProgress : 0.0;
@@ -274,7 +262,6 @@ export function setupTeamGears() {
     show: () => {
       state.active = true;
       state.scrollVelocity = 0;
-      overscrollProgress = 0;
       state.scrollOffsetProgress = 0;
       state.targetScrollOffsetProgress = 0;
 
@@ -306,28 +293,28 @@ export function setupTeamGears() {
       state.leftGear.scale.set(gearScale, gearScale, gearScale);
       state.rightGear.scale.set(gearScale, gearScale, gearScale);
 
-      // Animação GSAP de Entrada (Aguardar a dobra subir 100% primeiro)
+      // Animação GSAP de Entrada (Aguardar a dobra subir 100% primeiro com deslize fluido)
       const tl = gsap.timeline({ delay: isMobile ? 1.8 : 2.3 });
 
       // 1. As 2 engrenagens deslizam suavemente para as posições de borda
       tl.to(state.baseLeftPos, {
         x: targetLeftX,
-        duration: 2.0,
-        ease: 'power2.out'
+        duration: isMobile ? 2.2 : 2.0,
+        ease: 'power3.out'
       }, 0);
 
       tl.to(state.baseRightPos, {
         x: targetRightX,
-        duration: 2.0,
-        ease: 'power2.out'
+        duration: isMobile ? 2.2 : 2.0,
+        ease: 'power3.out'
       }, 0);
 
       // 2. Giro mais lento e cadenciado no SENTIDO CONTRÁRIO durante a entrada
       tl.to(state, {
         rotLeft: state.rotLeft - Math.PI * 1.2,
         rotRight: state.rotRight + Math.PI * 1.2,
-        duration: 2.0,
-        ease: 'power2.out'
+        duration: isMobile ? 2.2 : 2.0,
+        ease: 'power3.out'
       }, 0);
     },
     hide: () => {
@@ -351,24 +338,27 @@ export function setupTeamGears() {
         }
       });
 
-      // Roladinha de saída para fora das laterais
+      // Roladinha de saída suave e aveludada para fora das laterais
+      const exitDuration = isMobile ? 1.5 : 0.9;
+      const exitEase = isMobile ? 'power2.inOut' : 'power2.in';
+
       tl.to(state.baseLeftPos, {
         x: startLeftX,
-        duration: 0.9,
-        ease: 'power2.in'
+        duration: exitDuration,
+        ease: exitEase
       }, 0);
 
       tl.to(state.baseRightPos, {
         x: startRightX,
-        duration: 0.9,
-        ease: 'power2.in'
+        duration: exitDuration,
+        ease: exitEase
       }, 0);
 
       tl.to(state, {
         rotLeft: state.rotLeft - Math.PI * 1.8,
         rotRight: state.rotRight + Math.PI * 1.8,
-        duration: 0.9,
-        ease: 'power2.in'
+        duration: exitDuration,
+        ease: exitEase
       }, 0);
     }
   };
