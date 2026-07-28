@@ -155,42 +155,6 @@ function init() {
 
   setupTeamFold();
 
-  // Ouvinte de scroll na dobra da Equipe para girar interativamente as engrenagens 3D laterais
-  const teamSection = document.getElementById('team');
-  let lastTeamScrollTop = 0;
-
-  if (teamSection) {
-    teamSection.addEventListener('scroll', () => {
-      if (!teamGearsState.active) return;
-      const currentScrollTop = teamSection.scrollTop;
-      const deltaY = currentScrollTop - lastTeamScrollTop;
-      lastTeamScrollTop = currentScrollTop;
-
-      teamGearsState.scrollVelocity += deltaY * 0.0035;
-    }, { passive: true });
-
-    teamSection.addEventListener('wheel', (event) => {
-      if (!teamGearsState.active) return;
-      teamGearsState.scrollVelocity += event.deltaY * 0.0025;
-    }, { passive: true });
-
-    let touchTeamStartY = 0;
-    teamSection.addEventListener('touchstart', (event) => {
-      if (event.touches.length > 0) {
-        touchTeamStartY = event.touches[0].clientY;
-      }
-    }, { passive: true });
-
-    teamSection.addEventListener('touchmove', (event) => {
-      if (!teamGearsState.active || event.touches.length === 0) return;
-      const touchY = event.touches[0].clientY;
-      const deltaY = touchTeamStartY - touchY;
-      touchTeamStartY = touchY;
-
-      teamGearsState.scrollVelocity += deltaY * 0.004;
-    }, { passive: true });
-  }
-
   // 5. Carregar Modelo 3D (smlogo3d.glb)
   loadModel(
     scene,
@@ -351,6 +315,30 @@ function init() {
         teamGears.initGears(loadedModel.children[0] || loadedModel);
       }
 
+      // Pré-compilar no WebGL Main Renderer todos os materiais e PointLights das engrenagens extras
+      if (extraGearsState.gear1) extraGearsState.gear1.visible = true;
+      if (extraGearsState.gear2) extraGearsState.gear2.visible = true;
+      if (extraGearsState.gear3) extraGearsState.gear3.visible = true;
+      if (extraGearsState.gear4) extraGearsState.gear4.visible = true;
+
+      try {
+        renderer.compile(scene, camera);
+      } catch (e) {
+        console.warn('Pre-compile main renderer error:', e);
+      }
+
+      if (extraGearsState.gear1) extraGearsState.gear1.visible = false;
+      if (extraGearsState.gear2) extraGearsState.gear2.visible = false;
+      if (extraGearsState.gear3) extraGearsState.gear3.visible = false;
+      if (extraGearsState.gear4) extraGearsState.gear4.visible = false;
+
+      // Pré-decodificar na CPU/GPU a imagem da equipe para não engasgar a primeira renderização DOM
+      const teamImg = new Image();
+      teamImg.src = './foto_rodrigo.jpeg';
+      if (teamImg.decode) {
+        teamImg.decode().catch(() => {});
+      }
+
       // Ocultar tela de carregamento e iniciar a sequência de animação 3D de entrada em seguida
       ui.hideLoader(() => {
         // Executar Animações GSAP de Entrada da Câmera, Holograma e Luzes
@@ -373,6 +361,10 @@ function init() {
     if (!modelState.mesh) return;
 
     const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+
+    // Desativar e aplicar fade-out imediato nas linhas de hover do Raio-X da engrenagem
+    hoverState.isHovered = false;
+    gsap.to(hoverState, { progress: 0, duration: 0.4, ease: 'power2.out' });
 
     // Desfazer os cards e linhas holográficas em animação reversa antes de subir a dobra
     if (callouts && callouts.animateOut) {
@@ -661,9 +653,9 @@ function init() {
       ui.updateLevelGauge(mouse.x);
     }
 
-    // Raycasting para detectar hover e interseção 3D no modelo (revelação do Raio-X estritamente em Desktop)
+    // Raycasting para detectar hover e interseção 3D no modelo (revelação do Raio-X estritamente em Desktop quando a dobra não está ativa)
     const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
-    if (!isMobileDevice && modelState.mesh && camera) {
+    if (!isMobileDevice && modelState.mesh && camera && !extraGearsState.active) {
       mouseNDC.set(mouse.targetX, mouse.targetY);
       hoverRaycaster.setFromCamera(mouseNDC, camera);
       const intersects = hoverRaycaster.intersectObject(modelState.mesh, true);
@@ -675,10 +667,14 @@ function init() {
       } else {
         hoverState.isHovered = false;
       }
+    } else {
+      hoverState.isHovered = false;
     }
 
     // Suavização do indicador de progresso de hover do Raio-X
-    hoverState.progress += ((hoverState.isHovered ? 1.0 : 0.0) - hoverState.progress) * 0.12;
+    if (!extraGearsState.active) {
+      hoverState.progress += ((hoverState.isHovered ? 1.0 : 0.0) - hoverState.progress) * 0.12;
+    }
 
     // Atualizar uniforms do shader do esqueleto wireframe
     if (skeletonUniformsRef) {
