@@ -239,7 +239,7 @@ export function loadModel(scene, onProgress, onLoad, onError) {
         `
       });
 
-      // Aplicar material, corte de sombra, camada exclusiva de iluminação e sobreposição do esqueleto wireframe
+      // Aplicar material, corte de sombra e camada exclusiva de iluminação
       pivotGroup.traverse((child) => {
         if (child.isMesh && child.geometry) {
           child.material = gearMaterial;
@@ -247,15 +247,6 @@ export function loadModel(scene, onProgress, onLoad, onError) {
           child.castShadow = true;
           child.receiveShadow = true;
           child.layers.enable(1);
-
-          // Criar a malha wireframe do esqueleto estrutural (apenas em desktop para otimizar 100% o mobile)
-          const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
-          if (!isMobileDevice) {
-            const wireframeGeo = new THREE.WireframeGeometry(child.geometry);
-            const wireframeMesh = new THREE.LineSegments(wireframeGeo, wireframeMat);
-            wireframeMesh.name = 'WireframeSkeleton';
-            child.add(wireframeMesh);
-          }
         }
       });
 

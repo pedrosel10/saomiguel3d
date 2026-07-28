@@ -20,8 +20,8 @@ export function animateFoldSlideUp(sectionId = 'team') {
     },
     {
       y: '0vh',
-      duration: isMobile ? 2.2 : 2.6,
-      ease: 'power2.inOut',
+      duration: isMobile ? 0.9 : 1.1,
+      ease: 'power3.out',
       force3D: true,
       onStart: () => {
         if (triggerRevealFn) triggerRevealFn(sectionId);
@@ -100,19 +100,36 @@ export function setupTeamFold() {
     };
   };
 
+  const contatoVideo = document.querySelector('#contato video');
+  if (contatoVideo) {
+    contatoVideo.pause();
+  }
+
   const teamSection = document.querySelector('[data-observ="team"]');
   const servicosSection = document.querySelector('[data-observ="servicos"]');
   const clientesSection = document.querySelector('[data-observ="clientes"]');
+  const contatoSection = document.querySelector('[data-observ="contato"]');
 
   const triggerTeamReveal = initSectionReveal(teamSection);
   const triggerServicosReveal = initSectionReveal(servicosSection);
   const triggerClientesReveal = initSectionReveal(clientesSection);
+  const triggerContatoReveal = initSectionReveal(contatoSection);
 
   triggerRevealFn = (sectionId = 'team') => {
+    if (contatoVideo) {
+      if (sectionId === 'contato') {
+        contatoVideo.play().catch(() => {});
+      } else {
+        contatoVideo.pause();
+      }
+    }
+
     if (sectionId === 'servicos') {
       triggerServicosReveal();
     } else if (sectionId === 'clientes') {
       triggerClientesReveal();
+    } else if (sectionId === 'contato') {
+      triggerContatoReveal();
     } else {
       triggerTeamReveal();
     }
@@ -218,6 +235,9 @@ export function setupTeamFold() {
   closeBtns.forEach(btn => {
     btn.addEventListener("click", () => {
       const sectionId = btn.getAttribute("data-close") || "team";
+      if (contatoVideo && sectionId === 'contato') {
+        contatoVideo.pause();
+      }
       window.dispatchEvent(new CustomEvent('calloutClose', { detail: { id: sectionId } }));
     });
   });

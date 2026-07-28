@@ -24,10 +24,10 @@ export function setupScene(canvas) {
     canvas,
     antialias: true,
     alpha: true,
-    powerPreference: 'high-performance'
+    powerPreference: 'high-performance',
+    precision: 'highp'
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  // DPR otimizado em alta definição para evitar gargalo de GPU em telas retina de alta densidade
   const maxDPR = Math.min(window.devicePixelRatio, 1.75);
   renderer.setPixelRatio(maxDPR);
   renderer.shadowMap.enabled = true;

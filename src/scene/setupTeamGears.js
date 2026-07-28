@@ -18,17 +18,17 @@ export function setupTeamGears() {
   camera.position.set(0, 0, 10);
   camera.lookAt(0, 0, 0);
 
-  // 3. Renderer Dedicado no Canvas da Equipe
+  // 3. Renderer Dedicado no Canvas da Equipe com Alta Precisao e Antialiasing
   const renderer = new THREE.WebGLRenderer({
     canvas,
     alpha: true,
     antialias: true,
     powerPreference: 'high-performance',
-    precision: 'mediump'
+    precision: 'highp'
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  const maxDPR = window.innerWidth <= 768 ? 1.25 : 1.5;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDPR));
+  const maxDPR = Math.min(window.devicePixelRatio, 1.75);
+  renderer.setPixelRatio(maxDPR);
 
   // 4. Iluminação Dedicada (Frontal + Luzes Azuis Internas)
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.95);
@@ -310,19 +310,19 @@ export function setupTeamGears() {
       state.leftGear.scale.set(gearScale, gearScale, gearScale);
       state.rightGear.scale.set(gearScale, gearScale, gearScale);
 
-      // Animação GSAP de Entrada (Aguardar a dobra subir 100% primeiro com deslize fluido)
-      const tl = gsap.timeline({ delay: isMobile ? 1.8 : 2.3 });
+      // Animação GSAP de Entrada (Dispara IMEDIATAMENTE assim que a dobra atinge o topo)
+      const tl = gsap.timeline({ delay: 0 });
 
       // 1. As 2 engrenagens deslizam suavemente para as posições de borda
       tl.to(state.baseLeftPos, {
         x: targetLeftX,
-        duration: isMobile ? 2.2 : 2.0,
+        duration: isMobile ? 1.0 : 0.8,
         ease: 'power3.out'
       }, 0);
 
       tl.to(state.baseRightPos, {
         x: targetRightX,
-        duration: isMobile ? 2.2 : 2.0,
+        duration: isMobile ? 1.0 : 0.8,
         ease: 'power3.out'
       }, 0);
 
@@ -330,19 +330,23 @@ export function setupTeamGears() {
       tl.to(state, {
         rotLeft: state.rotLeft - Math.PI * 1.2,
         rotRight: state.rotRight + Math.PI * 1.2,
-        duration: isMobile ? 2.2 : 2.0,
+        duration: isMobile ? 1.0 : 0.8,
         ease: 'power3.out'
       }, 0);
     },
-    hide: () => {
+    hide: (onCompleteCallback) => {
       if (!state.leftGear || !state.rightGear) {
         state.active = false;
+        if (onCompleteCallback) onCompleteCallback();
         return;
       }
 
       const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
       const startLeftX = isMobile ? -8.0 : -18.0;
       const startRightX = isMobile ? 8.0 : 18.0;
+
+      const exitDuration = isMobile ? 0.9 : 0.7;
+      const exitEase = 'power2.inOut';
 
       const tl = gsap.timeline({
         onComplete: () => {
@@ -352,12 +356,9 @@ export function setupTeamGears() {
           if (state.leftGear) state.leftGear.visible = false;
           if (state.rightGear) state.rightGear.visible = false;
           renderer.clear();
+          if (onCompleteCallback) onCompleteCallback();
         }
       });
-
-      // Roladinha de saída suave e aveludada para fora das laterais
-      const exitDuration = isMobile ? 1.5 : 0.9;
-      const exitEase = isMobile ? 'power2.inOut' : 'power2.in';
 
       tl.to(state.baseLeftPos, {
         x: startLeftX,

@@ -139,9 +139,12 @@ function init() {
     }
   }, { passive: true });
 
-  // Listener para pausar o render da cena 3D principal exatamente quando a dobra preta terminar de subir cobrindo 100% da tela
+  // Listener para pausar o render da cena 3D principal e ativar o render das engrenagens da dobra preta no ponto exato
   window.addEventListener('foldSlideUpComplete', () => {
     isMainScenePaused = true;
+    if (teamGears && teamGears.show) {
+      teamGears.show();
+    }
   });
 
   // Listener para sincronizar a inclinação lateral 3D de forma extremamente suave quando o usuário desliza o nível no mobile
@@ -278,11 +281,36 @@ function init() {
         return light;
       };
 
+      // Material simplificado e ultra-leve para as engrenagens extras de transicao (sem calculo de sombra nem clearcoat)
+      const extraGearMat = new THREE.MeshStandardMaterial({
+        color: new THREE.Color('#051b42'),
+        map: gearMaterial.map,
+        normalMap: gearMaterial.normalMap,
+        normalScale: new THREE.Vector2(1.0, 1.0),
+        roughnessMap: gearMaterial.roughnessMap,
+        metalnessMap: gearMaterial.metalnessMap,
+        metalness: 0.95,
+        roughness: 0.35,
+        envMapIntensity: 1.2,
+        side: THREE.DoubleSide
+      });
+
+      const cloneExtraMesh = (source) => {
+        const clone = source.clone(true);
+        clone.traverse(child => {
+          if (child.isMesh) {
+            child.material = extraGearMat;
+            child.castShadow = false;
+            child.receiveShadow = false;
+          }
+        });
+        return clone;
+      };
+
       if (!extraGearsState.gear1) {
         const g1 = new THREE.Group();
-        g1.add(meshSource.clone(true));
+        g1.add(cloneExtraMesh(meshSource));
         g1.add(createInnerBlueLight());
-        if (isMobileDevice) g1.traverse(child => { if (child.isMesh) { child.castShadow = false; child.receiveShadow = false; } });
         g1.visible = false;
         scene.add(g1);
         extraGearsState.gear1 = g1;
@@ -290,9 +318,8 @@ function init() {
 
       if (!extraGearsState.gear2) {
         const g2 = new THREE.Group();
-        g2.add(meshSource.clone(true));
+        g2.add(cloneExtraMesh(meshSource));
         g2.add(createInnerBlueLight());
-        if (isMobileDevice) g2.traverse(child => { if (child.isMesh) { child.castShadow = false; child.receiveShadow = false; } });
         g2.visible = false;
         scene.add(g2);
         extraGearsState.gear2 = g2;
@@ -301,7 +328,7 @@ function init() {
       if (!isMobileDevice) {
         if (!extraGearsState.gear3) {
           const g3 = new THREE.Group();
-          g3.add(meshSource.clone(true));
+          g3.add(cloneExtraMesh(meshSource));
           g3.add(createInnerBlueLight());
           g3.visible = false;
           scene.add(g3);
@@ -309,7 +336,7 @@ function init() {
         }
         if (!extraGearsState.gear4) {
           const g4 = new THREE.Group();
-          g4.add(meshSource.clone(true));
+          g4.add(cloneExtraMesh(meshSource));
           g4.add(createInnerBlueLight());
           g4.visible = false;
           scene.add(g4);
@@ -346,15 +373,14 @@ function init() {
         teamImg.decode().catch(() => {});
       }
 
-      // Ocultar tela de carregamento e iniciar a sequência de animação 3D de entrada em seguida
+      // Ocultar tela de carregamento e iniciar a sequência de animação 3D de entrada em seguida no próximo frame
       ui.hideLoader(() => {
-        // Executar Animações GSAP de Entrada da Câmera, Holograma e Luzes
-        setupAnimations(camera, lights, controls, buildUniforms, shadowFloorMat);
-
-        // Revelar as Linhas 3D e os Cards HTML (animação de baixo para cima)
-        if (callouts) {
-          callouts.animateIn();
-        }
+        requestAnimationFrame(() => {
+          setupAnimations(camera, lights, controls, buildUniforms, shadowFloorMat);
+          if (callouts) {
+            callouts.animateIn();
+          }
+        });
       });
     },
     (error) => {
@@ -376,11 +402,6 @@ function init() {
     // Desfazer os cards e linhas holográficas em animação reversa antes de subir a dobra
     if (callouts && callouts.animateOut) {
       callouts.animateOut(0.0);
-    }
-
-    // Revelar as engrenagens 3D com visão frontal no canvas da equipe
-    if (teamGears && teamGears.show) {
-      teamGears.show();
     }
 
     extraGearsState.active = true;
@@ -418,7 +439,7 @@ function init() {
     const animObj = {
       gear1Z: TARGET_OFFSET_Z1,
       gear2Z: -TARGET_OFFSET_Z1,
-      duration: isMobile ? 1.1 : 1.3,
+      duration: isMobile ? 0.7 : 0.9,
       ease: 'power3.out'
     };
 
@@ -429,7 +450,7 @@ function init() {
 
     tl.to(extraGearsState, animObj, 0);
 
-    const TARGET_SPIN = isMobile ? 3.2 : 3.8;
+    const TARGET_SPIN = isMobile ? 1.4 : 1.6;
 
     // 2. EFEITO DE ONDA: Apenas APÓS chegarem e encaixarem na posição no eixo, inicia o movimento giratório em onda
     if (isMobile) {
@@ -437,93 +458,99 @@ function init() {
         spinSpeed1: TARGET_SPIN,
         spinSpeed2: TARGET_SPIN,
         spinSpeedCentral: TARGET_SPIN,
-        duration: 1.2,
+        duration: 1.0,
         ease: 'power2.inOut'
-      }, 0.85);
+      }, 0.5);
     } else {
-      // Onda sequencial cascateando do fundo para a frente APÓS o pouso estático no eixo (t = 1.25s)
-      const ARRIVAL_TIME = 1.25;
-      tl.to(extraGearsState, { spinSpeed4: TARGET_SPIN, duration: 1.2, ease: 'power2.out' }, ARRIVAL_TIME);
-      tl.to(extraGearsState, { spinSpeed2: TARGET_SPIN, duration: 1.2, ease: 'power2.out' }, ARRIVAL_TIME + 0.18);
-      tl.to(extraGearsState, { spinSpeedCentral: TARGET_SPIN, duration: 1.2, ease: 'power2.out' }, ARRIVAL_TIME + 0.36);
-      tl.to(extraGearsState, { spinSpeed1: TARGET_SPIN, duration: 1.2, ease: 'power2.out' }, ARRIVAL_TIME + 0.54);
-      tl.to(extraGearsState, { spinSpeed3: TARGET_SPIN, duration: 1.2, ease: 'power2.out' }, ARRIVAL_TIME + 0.72);
+      // Onda sequencial cascateando do fundo para a frente APÓS o pouso estático no eixo (t = 0.5s)
+      const ARRIVAL_TIME = 0.5;
+      tl.to(extraGearsState, { spinSpeed4: TARGET_SPIN, duration: 1.0, ease: 'power2.out' }, ARRIVAL_TIME);
+      tl.to(extraGearsState, { spinSpeed2: TARGET_SPIN, duration: 1.0, ease: 'power2.out' }, ARRIVAL_TIME + 0.12);
+      tl.to(extraGearsState, { spinSpeedCentral: TARGET_SPIN, duration: 1.0, ease: 'power2.out' }, ARRIVAL_TIME + 0.24);
+      tl.to(extraGearsState, { spinSpeed1: TARGET_SPIN, duration: 1.0, ease: 'power2.out' }, ARRIVAL_TIME + 0.36);
+      tl.to(extraGearsState, { spinSpeed3: TARGET_SPIN, duration: 1.0, ease: 'power2.out' }, ARRIVAL_TIME + 0.48);
     }
 
-    // 3. Após o movimento giratório em onda estar totalmente estabelecido, dispara a subida cadenciada da dobra
+    // 3. Após o movimento das engrenagens do eixo se estabelecer, dispara a subida cadenciada da dobra
     tl.add(() => {
       animateFoldSlideUp(targetSectionId);
-    }, isMobile ? 1.5 : 2.45);
+    }, isMobile ? 1.5 : 2.3);
   }
 
-  // Animação 3D de saída das engrenagens voltando para fora da tela
-  function triggerEquipeGearExitAnimation() {
-    if (!extraGearsState.active || !extraGearsState.gear1 || !extraGearsState.gear2) {
-      return;
-    }
+  // Animação 3D de saída sequencial das engrenagens voltando para fora da tela
+  function triggerEquipeGearExitAnimation(activeSectionId = 'team') {
+    const runExitSequence = () => {
+      // 1. Reativar o render da cena 3D principal para a transição de descida
+      isMainScenePaused = false;
 
-    // Reativar imediatamente o render da cena 3D principal antes da dobra descer
-    isMainScenePaused = false;
+      // 2. Disparar a descida da dobra preta
+      animateFoldSlideDown(activeSectionId);
 
-    const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
-
-    // Fazer os cards e linhas reconstruírem-se e reaparecerem na tela inicial
-    if (callouts && callouts.animateIn) {
-      callouts.animateIn(isMobile ? 0.2 : 0.5);
-    }
-
-    const OFFSCREEN_FAR_Z1 = isMobile ? 14.0 : 35.0;
-    const OFFSCREEN_FAR_Z2 = 55.0;
-
-    if (teamGears && teamGears.hide) {
-      teamGears.hide();
-    }
-
-    // Calcular a próxima volta completa (múltiplo exato de 2 * PI) para a engrenagem central parar suavemente na posição inicial
-    const TWO_PI = Math.PI * 2;
-    const currentRot = extraGearsState.centralRotation;
-    const targetCentralRot = Math.round(currentRot / TWO_PI) * TWO_PI;
-
-    extraGearsState.isExiting = true;
-
-    const tl = gsap.timeline({
-      onComplete: () => {
-        extraGearsState.active = false;
-        extraGearsState.isExiting = false;
-        extraGearsState.centralRotation = 0;
-        if (extraGearsState.gear1) extraGearsState.gear1.visible = false;
-        if (extraGearsState.gear2) extraGearsState.gear2.visible = false;
-        if (extraGearsState.gear3) extraGearsState.gear3.visible = false;
-        if (extraGearsState.gear4) extraGearsState.gear4.visible = false;
+      if (!extraGearsState.active || !extraGearsState.gear1 || !extraGearsState.gear2) {
+        return;
       }
-    });
 
-    const exitObj = {
-      gear1Z: OFFSCREEN_FAR_Z1,
-      gear2Z: -OFFSCREEN_FAR_Z1,
-      duration: isMobile ? 1.0 : 1.5,
-      ease: 'power3.in'
+      const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+
+      // Fazer os cards e linhas reconstruírem-se na tela inicial
+      if (callouts && callouts.animateIn) {
+        callouts.animateIn(isMobile ? 0.2 : 0.5);
+      }
+
+      const OFFSCREEN_FAR_Z1 = isMobile ? 14.0 : 35.0;
+      const OFFSCREEN_FAR_Z2 = 55.0;
+
+      const TWO_PI = Math.PI * 2;
+      const currentRot = extraGearsState.centralRotation;
+      const targetCentralRot = Math.round(currentRot / TWO_PI) * TWO_PI;
+
+      extraGearsState.isExiting = true;
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          extraGearsState.active = false;
+          extraGearsState.isExiting = false;
+          extraGearsState.centralRotation = 0;
+          if (extraGearsState.gear1) extraGearsState.gear1.visible = false;
+          if (extraGearsState.gear2) extraGearsState.gear2.visible = false;
+          if (extraGearsState.gear3) extraGearsState.gear3.visible = false;
+          if (extraGearsState.gear4) extraGearsState.gear4.visible = false;
+        }
+      });
+
+      const exitObj = {
+        gear1Z: OFFSCREEN_FAR_Z1,
+        gear2Z: -OFFSCREEN_FAR_Z1,
+        duration: isMobile ? 1.0 : 1.5,
+        ease: 'power3.in'
+      };
+
+      if (!isMobile) {
+        exitObj.gear3Z = OFFSCREEN_FAR_Z2;
+        exitObj.gear4Z = -OFFSCREEN_FAR_Z2;
+      }
+
+      tl.to(extraGearsState, exitObj, isMobile ? 0.2 : 0.4);
+
+      tl.to(extraGearsState, {
+        spinSpeed1: 0,
+        spinSpeed2: 0,
+        spinSpeed3: 0,
+        spinSpeed4: 0,
+        spinSpeedCentral: 0,
+        centralRotation: targetCentralRot,
+        duration: isMobile ? 1.2 : 1.7,
+        ease: 'power2.out'
+      }, isMobile ? 0.1 : 0.2);
     };
 
-    if (!isMobile) {
-      exitObj.gear3Z = OFFSCREEN_FAR_Z2;
-      exitObj.gear4Z = -OFFSCREEN_FAR_Z2;
+    // 1. Esconder e parar primeiro as engrenagens laterais da dobra preta
+    // 2. Assim que terminarem de recolher, relugar a cena principal e descer a dobra!
+    if (teamGears && teamGears.hide) {
+      teamGears.hide(runExitSequence);
+    } else {
+      runExitSequence();
     }
-
-    // 1. As engrenagens duplicadas voam de volta para fora da tela enquanto a dobra recolhe
-    tl.to(extraGearsState, exitObj, isMobile ? 0.2 : 0.4);
-
-    // Desaceleração suave de todas as velocidades e alinhamento do centro na volta completa de 360°
-    tl.to(extraGearsState, {
-      spinSpeed1: 0,
-      spinSpeed2: 0,
-      spinSpeed3: 0,
-      spinSpeed4: 0,
-      spinSpeedCentral: 0,
-      centralRotation: targetCentralRot,
-      duration: isMobile ? 1.2 : 1.7,
-      ease: 'power2.out'
-    }, isMobile ? 0.1 : 0.2);
   }
 
   // Mapeamento dos IDs dos Callouts de 3D para as Seções das Dobras
@@ -550,8 +577,7 @@ function init() {
     const data = event.detail;
     if (data && data.id) {
       const sectionId = foldIdMap[data.id] || data.id;
-      animateFoldSlideDown(sectionId);
-      triggerEquipeGearExitAnimation();
+      triggerEquipeGearExitAnimation(sectionId);
     }
   });
 
@@ -560,8 +586,8 @@ function init() {
     updateResponsiveCamera(camera, scene, floor, shadowFloor);
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    const maxDPR = window.innerWidth <= 768 ? 1.85 : 2.0;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDPR));
+    const maxDPR = Math.min(window.devicePixelRatio, 1.75);
+    renderer.setPixelRatio(maxDPR);
   });
 
   // 7. Loop de Renderização (Animation Loop)
@@ -674,36 +700,6 @@ function init() {
     // Sincronizar em tempo real o indicador do Nível Minimalista com a inclinação 3D no mobile
     if (ui && ui.updateLevelGauge) {
       ui.updateLevelGauge(mouse.x);
-    }
-
-    // Raycasting para detectar hover e interseção 3D no modelo (revelação do Raio-X estritamente em Desktop quando a dobra não está ativa)
-    const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
-    if (!isMobileDevice && modelState.mesh && camera && !extraGearsState.active) {
-      mouseNDC.set(mouse.targetX, mouse.targetY);
-      hoverRaycaster.setFromCamera(mouseNDC, camera);
-      const intersects = hoverRaycaster.intersectObject(modelState.mesh, true);
-      const meshHit = intersects.find(hit => hit.object.isMesh && hit.object.name !== 'WireframeSkeleton');
-
-      if (meshHit) {
-        hoverState.isHovered = true;
-        hoverState.point.lerp(meshHit.point, 0.25);
-      } else {
-        hoverState.isHovered = false;
-      }
-    } else {
-      hoverState.isHovered = false;
-    }
-
-    // Suavização do indicador de progresso de hover do Raio-X
-    if (!extraGearsState.active) {
-      hoverState.progress += ((hoverState.isHovered ? 1.0 : 0.0) - hoverState.progress) * 0.12;
-    }
-
-    // Atualizar uniforms do shader do esqueleto wireframe
-    if (skeletonUniformsRef) {
-      skeletonUniformsRef.uHoverProgress.value = hoverState.progress;
-      skeletonUniformsRef.uHoverPoint.value.copy(hoverState.point);
-      skeletonUniformsRef.uTime.value += delta;
     }
 
     // Atualizar partículas de faísca (Apenas quando a cena 3D principal não estiver pausada)

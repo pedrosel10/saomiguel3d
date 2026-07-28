@@ -892,6 +892,7 @@ kbd {
   font-family: 'Inter', sans-serif;
   content-visibility: auto;
   contain-intrinsic-size: auto 100vh;
+  contain: content;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -1603,10 +1604,8 @@ kbd {
   position: absolute;
   bottom: 16px;
   left: 16px;
-  background-color: #0d0d0d;
+  background-color: rgba(13, 13, 13, 0.96);
   border: 1px solid #333333;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   border-radius: 6px;
   padding: 10px 18px;
   display: flex;
