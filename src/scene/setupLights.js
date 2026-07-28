@@ -22,15 +22,16 @@ export function setupLights(scene, renderer) {
   const hemiLight = new THREE.HemisphereLight(0xeff6ff, 0x475569, 0.6);
   scene.add(hemiLight);
 
-  // 4. Key Light
-  const keyLight = new THREE.DirectionalLight(0xffffff, 0.0);
+  // 4. Key Light com projecao de sombra ativada para a engrenagem principal
+  const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
   keyLight.position.set(4.0, 8.0, 6.0);
   keyLight.castShadow = true;
-  const shadowSize = 2048;
+  const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
+  const shadowSize = isMobileDevice ? 1024 : 2048;
   keyLight.shadow.mapSize.set(shadowSize, shadowSize);
-  keyLight.shadow.bias = -0.01;
-  keyLight.shadow.normalBias = 0;
-  keyLight.shadow.radius = 6.0;
+  keyLight.shadow.bias = -0.0005;
+  keyLight.shadow.normalBias = 0.02;
+  keyLight.shadow.radius = 4.0;
   keyLight.shadow.camera.left = -6;
   keyLight.shadow.camera.right = 6;
   keyLight.shadow.camera.top = 6;

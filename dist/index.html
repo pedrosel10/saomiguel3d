@@ -15,10 +15,10 @@
     href="https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;600;700&display=swap"
     rel="stylesheet">
 
-  <script type="module" crossorigin src="./assets/index-CG7e8Bsm.js"></script>
+  <script type="module" crossorigin src="./assets/index-CwDx1ura.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/three-CTU_LqRf.js">
   <link rel="modulepreload" crossorigin href="./assets/gsap-SFc2wnMY.js">
-  <link rel="stylesheet" crossorigin href="./assets/index-BhPkhcHK.css">
+  <link rel="stylesheet" crossorigin href="./assets/index-DoaMawp1.css">
 </head>
 
 <body>
@@ -87,7 +87,9 @@
           <div class="overflow-hidden mod--team-img1">
             <img 
               src="./assets/foto_rodrigo-hoCVDcHB.jpeg" 
-              loading="eager" 
+              loading="lazy" 
+              fetchpriority="low"
+              decoding="async"
               alt="Engenheiro civil Rodrigo Selestrim, fundador da São Miguel Engenharia" 
               srcset="./assets/foto_rodrigo-hoCVDcHB.jpeg 500w, ./assets/foto_rodrigo-hoCVDcHB.jpeg 782w"
               sizes="(max-width: 479px) 90vw, (max-width: 767px) 288px, (max-width: 991px) 391px, 33vw"
@@ -139,6 +141,550 @@
         </div>
 
       </div>
+    </div>
+  </section>
+
+  <!-- DOBRA 2: SERVIÇOS -->
+  <section id="servicos" class="section mod--about mod--servicos">
+    <button id="servicos-close-btn" class="team-close-btn fold-close-btn" data-close="servicos" aria-label="Voltar para a tela inicial">
+      <span>VOLTAR</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    <div data-observ="servicos" class="content">
+      
+      <!-- Cabeçalho da Seção (Estrutura idêntica à Dobra Equipe) -->
+      <div class="heading-wrap mod--team">
+        <div class="subheading-wrap mod--team">
+          <div class="subheading__line-wrap">
+            <div class="subheading__line"></div>
+          </div>
+          <div class="subheading__text">SERVIÇOS</div>
+        </div>
+        <h2 class="heading heading--size-38 team-heading-fix" id="servicos-dynamic-heading">
+          Construção
+        </h2>
+      </div>
+
+      <!-- Sistema de Abas e Conteúdo -->
+      <div class="system__tabs-wrap">
+        <div id="tabs-system" class="system__tabs">
+          
+          <!-- Menu de Navegação entre Abas -->
+          <div class="system__tabs-menu">
+            <button class="system__tab-link active" data-tab="tab-1">
+              <span class="btn__txt">Construção</span>
+              <div class="system__tab-link-separate"></div>
+            </button>
+            <button class="system__tab-link" data-tab="tab-2">
+              <span class="btn__txt">Projetos</span>
+              <div class="system__tab-link-separate"></div>
+            </button>
+            <button class="system__tab-link" data-tab="tab-3">
+              <span class="btn__txt">PPCI</span>
+            </button>
+          </div>
+
+          <!-- Conteúdo das Abas -->
+          <div class="system__tabs-content">
+            
+            <!-- ABA 1: CONSTRUÇÃO -->
+            <div id="tab-1" class="system__tab active">
+              <div class="system__tab-content">
+                <div class="swiper mod--system swiper-construcao">
+                  <div class="swiper-wrapper">
+                    
+                    <!-- Slide 1 -->
+                    <div class="swiper-slide mod--system">
+                      <div class="system__slide-inner">
+                        <div class="overflow-hidden mod--system-img">
+                          <img 
+                            src="./servicos/construcao_01_1x.webp" 
+                            alt="Gestão de obras e gerenciamento de construção em Canela e Gramado, RS"
+                            class="system__slide-img" 
+                            loading="eager"
+                          />
+                        </div>
+                        <div class="bg__line mod--system"></div>
+                        <div class="system__slide-txt-wrap">
+                          <div class="system__slide-overtitle">PROJETO E GERENCIAMENTO DE OBRAS</div>
+                          <h3 class="system__slide-title">Gestão de Obras Completa</h3>
+                          <div class="system__rich">
+                            <ul>
+                              <li>Do projeto ao pós-obra</li>
+                              <li>Cronograma, custos e qualidade</li>
+                              <li>Acompanhamento e relatórios</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Slide 2 -->
+                    <div class="swiper-slide mod--system">
+                      <div class="system__slide-inner">
+                        <div class="overflow-hidden mod--system-img">
+                          <img 
+                            src="./servicos/construcao_02_1x.webp" 
+                            alt="Projeto estrutural e engenharia estrutural em Canela, Gramado e Serra Gaúcha"
+                            class="system__slide-img" 
+                            loading="eager"
+                          />
+                        </div>
+                        <div class="bg__line mod--system"></div>
+                        <div class="system__slide-txt-wrap">
+                          <div class="system__slide-overtitle">ENGENHARIA ESTRUTURAL</div>
+                          <h3 class="system__slide-title">Projeto Estrutural Preciso</h3>
+                          <div class="system__rich">
+                            <ul>
+                              <li>Cálculo e detalhamento executivo</li>
+                              <li>Compatibilização com arquitetura</li>
+                              <li>Vistorias e suporte técnico</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ABA 2: PROJETOS -->
+            <div id="tab-2" class="system__tab">
+              <div class="system__tab-content">
+                <div class="swiper mod--system swiper-projetos">
+                  <div class="swiper-wrapper">
+                    
+                    <!-- Slide 1 -->
+                    <div class="swiper-slide mod--system">
+                      <div class="system__slide-inner">
+                        <div class="overflow-hidden mod--system-img">
+                          <img 
+                            src="./servicos/projeto_01_1x.webp" 
+                            alt="Planejamento e execução de projetos de engenharia civil na Serra Gaúcha"
+                            class="system__slide-img" 
+                            loading="lazy"
+                          />
+                        </div>
+                        <div class="bg__line mod--system"></div>
+                        <div class="system__slide-txt-wrap">
+                          <div class="system__slide-overtitle">PLANEJAMENTO E PROJETO DE INFRAESTRUTURA</div>
+                          <h3 class="system__slide-title">Planejamento e Execução</h3>
+                          <div class="system__rich">
+                            <ul>
+                              <li>Projetos completos para obras e reformas</li>
+                              <li>Da fundação ao acabamento</li>
+                              <li>Segurança, funcionalidade e sustentabilidade</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Slide 2 -->
+                    <div class="swiper-slide mod--system">
+                      <div class="system__slide-inner">
+                        <div class="overflow-hidden mod--system-img">
+                          <img 
+                            src="./servicos/projeto_02_1x.webp" 
+                            alt="Consultoria técnica em engenharia civil em Canela e Gramado"
+                            class="system__slide-img" 
+                            loading="lazy"
+                          />
+                        </div>
+                        <div class="bg__line mod--system"></div>
+                        <div class="system__slide-txt-wrap">
+                          <div class="system__slide-overtitle">CONSULTORIA TÉCNICA</div>
+                          <h3 class="system__slide-title">Decisões com Segurança Técnica</h3>
+                          <div class="system__rich">
+                            <ul>
+                              <li>Análise e diagnóstico da obra</li>
+                              <li>Orientação para soluções e melhorias</li>
+                              <li>Parecer técnico e recomendações</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ABA 3: PPCI -->
+            <div id="tab-3" class="system__tab">
+              <div class="system__tab-content">
+                <div class="swiper mod--system swiper-ppci">
+                  <div class="swiper-wrapper">
+                    
+                    <!-- Slide 1 -->
+                    <div class="swiper-slide mod--system">
+                      <div class="system__slide-inner">
+                        <div class="overflow-hidden mod--system-img">
+                          <img 
+                            src="./servicos/ppci_01_1x.webp" 
+                            alt="PPCI - Plano de Prevenção e Proteção Contra Incêndio em Canela e Gramado, RS"
+                            class="system__slide-img" 
+                            loading="lazy"
+                          />
+                        </div>
+                        <div class="bg__line mod--system"></div>
+                        <div class="system__slide-txt-wrap">
+                          <div class="system__slide-overtitle">GESTÃO DE PPCI</div>
+                          <h3 class="system__slide-title">PPCI do Projeto à Aprovação</h3>
+                          <div class="system__rich">
+                            <ul>
+                              <li>Análise do imóvel e necessidades</li>
+                              <li>Projeto, documentação e protocolos</li>
+                              <li>Suporte técnico em toda a etapa</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Slide 2 -->
+                    <div class="swiper-slide mod--system">
+                      <div class="system__slide-inner">
+                        <div class="overflow-hidden mod--system-img">
+                          <img 
+                            src="./servicos/ppci_02_1x.webp" 
+                            alt="Renovação e adequação de PPCI no Rio Grande do Sul"
+                            class="system__slide-img" 
+                            loading="lazy"
+                          />
+                        </div>
+                        <div class="bg__line mod--system"></div>
+                        <div class="system__slide-txt-wrap">
+                          <div class="system__slide-overtitle">PPCI</div>
+                          <h3 class="system__slide-title">Renovação e Adequação</h3>
+                          <div class="system__rich">
+                            <ul>
+                              <li>Atualização conforme normas vigentes</li>
+                              <li>Ajustes técnicos no imóvel</li>
+                              <li>Suporte até nova aprovação</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- DOBRA 3: CLIENTES -->
+  <section id="clientes" class="section mod--about mod--clientes">
+    <button id="clientes-close-btn" class="team-close-btn fold-close-btn" data-close="clientes" aria-label="Voltar para a tela inicial">
+      <span>VOLTAR</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    <div data-observ="clientes" class="content">
+      
+      <!-- Elementos Decorativos de Background em Marca d'Água -->
+      <div class="gallery__bg-wrap">
+        <div class="gallery__bg">
+          <div class="gallery__bg-chaine-wrap mod--1">
+            <img src="./clientes/chain.svg" alt="" class="gallery__bg-chaine" loading="lazy" />
+          </div>
+          <div class="gallery__bg-chaine-wrap mod--2">
+            <img src="./clientes/chain.svg" alt="" class="gallery__bg-chaine" loading="lazy" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Título Principal (Estilo idêntico à Dobra Equipe) -->
+      <div class="heading-wrap mod--team">
+        <div class="subheading-wrap mod--team">
+          <div class="subheading__line-wrap">
+            <div class="subheading__line"></div>
+          </div>
+          <div class="subheading__text">CLIENTES</div>
+        </div>
+        <h2 class="heading heading--size-38 team-heading-fix">
+          <span class="heading__span">Cases de clientes em</span><br />
+          <span class="heading__span">Canela e Gramado</span>
+        </h2>
+      </div>
+
+      <!-- Lista de Cases dos 8 Clientes (Largura Fixo 620px) -->
+      <div class="gallery__container">
+
+        <!-- CLIENTE 1 -->
+        <div class="gallery__slide-content">
+          <h3 class="gallery__slide-title">Colline de France</h3>
+          <div class="img-logo-wrapper">
+            <div class="overflow-hidden mod--gallery-slide">
+              <img 
+                src="./clientes/fotos_clientes/01_1x.webp" 
+                alt="Colline de France - Hotel em Gramado, RS" 
+                class="gallery__slide-img"
+                loading="eager"
+              />
+            </div>
+            <div class="client-logo-card active">
+              <img 
+                src="./clientes/logos_clientes/01_1_5x.webp" 
+                alt="Logo Colline de France" 
+                class="client-logo-img"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- CLIENTE 2 -->
+        <div class="gallery__slide-content">
+          <h3 class="gallery__slide-title">Salão Super Carros</h3>
+          <div class="img-logo-wrapper">
+            <div class="overflow-hidden mod--gallery-slide">
+              <img 
+                src="./clientes/fotos_clientes/02_1x.webp" 
+                alt="Salão Super Carros em Gramado, RS" 
+                class="gallery__slide-img"
+                loading="lazy"
+              />
+            </div>
+            <div class="client-logo-card active">
+              <img 
+                src="./clientes/logos_clientes/02_1_5x.webp" 
+                alt="Logo Salão Super Carros" 
+                class="client-logo-img"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- CLIENTE 3 -->
+        <div class="gallery__slide-content">
+          <h3 class="gallery__slide-title">A Roda Canela</h3>
+          <div class="img-logo-wrapper">
+            <div class="overflow-hidden mod--gallery-slide">
+              <img 
+                src="./clientes/fotos_clientes/03_1x.webp" 
+                alt="A Roda Canela" 
+                class="gallery__slide-img"
+                loading="lazy"
+              />
+            </div>
+            <div class="client-logo-card active">
+              <img 
+                src="./clientes/logos_clientes/03_1_5x.webp" 
+                alt="Logo A Roda Canela" 
+                class="client-logo-img"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- CLIENTE 4 -->
+        <div class="gallery__slide-content">
+          <h3 class="gallery__slide-title">Hotel Valle D’Incanto</h3>
+          <div class="img-logo-wrapper">
+            <div class="overflow-hidden mod--gallery-slide">
+              <img 
+                src="./clientes/fotos_clientes/04_1x.webp" 
+                alt="Hotel Valle D’Incanto Gramado" 
+                class="gallery__slide-img"
+                loading="lazy"
+              />
+            </div>
+            <div class="client-logo-card active">
+              <img 
+                src="./clientes/logos_clientes/04_1_5x.webp" 
+                alt="Logo Hotel Valle D'Incanto" 
+                class="client-logo-img"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- CLIENTE 5 -->
+        <div class="gallery__slide-content">
+          <h3 class="gallery__slide-title">Pizzaria Cara de Mau</h3>
+          <div class="img-logo-wrapper">
+            <div class="overflow-hidden mod--gallery-slide">
+              <img 
+                src="./clientes/fotos_clientes/05_1x.webp" 
+                alt="Pizzaria Cara de Mau Gramado" 
+                class="gallery__slide-img"
+                loading="lazy"
+              />
+            </div>
+            <div class="client-logo-card active">
+              <img 
+                src="./clientes/logos_clientes/05_1_5x.webp" 
+                alt="Logo Pizzaria Cara de Mau" 
+                class="client-logo-img"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- CLIENTE 6 -->
+        <div class="gallery__slide-content">
+          <h3 class="gallery__slide-title">Dauper Indústria</h3>
+          <div class="img-logo-wrapper">
+            <div class="overflow-hidden mod--gallery-slide">
+              <img 
+                src="./clientes/fotos_clientes/06_1x.webp" 
+                alt="Dauper Indústria e Comércio Canela" 
+                class="gallery__slide-img"
+                loading="lazy"
+                fetchpriority="low"
+              />
+            </div>
+            <div class="client-logo-card active">
+              <img 
+                src="./clientes/logos_clientes/06_1_5x.webp" 
+                alt="Logo Dauper Indústria e Comércio" 
+                class="client-logo-img"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- CLIENTE 7 -->
+        <div class="gallery__slide-content">
+          <h3 class="gallery__slide-title">Hilton Hotels</h3>
+          <div class="img-logo-wrapper">
+            <div class="overflow-hidden mod--gallery-slide">
+              <img 
+                src="./clientes/fotos_clientes/07_1x.webp" 
+                alt="Hilton Hotels & Resorts" 
+                class="gallery__slide-img"
+                loading="lazy"
+              />
+            </div>
+            <div class="client-logo-card active">
+              <img 
+                src="./clientes/logos_clientes/07_1_5x.webp" 
+                alt="Logo Hilton Hotels & Resorts" 
+                class="client-logo-img"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- CLIENTE 8 -->
+        <div class="gallery__slide-content">
+          <h3 class="gallery__slide-title">Marini Indústria</h3>
+          <div class="img-logo-wrapper">
+            <div class="overflow-hidden mod--gallery-slide">
+              <img 
+                src="./clientes/fotos_clientes/08_1x.webp" 
+                alt="Marini Indústria Canela" 
+                class="gallery__slide-img"
+                loading="lazy"
+              />
+            </div>
+            <div class="client-logo-card active">
+              <img 
+                src="./clientes/logos_clientes/08_1_5x.webp" 
+                alt="Logo Marini Indústria" 
+                class="client-logo-img"
+              />
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- DOBRA 4: CONTATO -->
+  <section id="contato" class="section mod--about mod--contact">
+    <button id="contato-close-btn" class="team-close-btn fold-close-btn" data-close="contato" aria-label="Voltar para a tela inicial">
+      <span class="btn-line line-1"></span>
+      <span class="btn-line line-2"></span>
+      <span class="btn-txt">VOLTAR</span>
+    </button>
+
+    <!-- Overlay Escuro sobre o Vídeo -->
+    <div class="contact__overlay"></div>
+
+    <!-- Container de Conteúdo Centralizado -->
+    <div class="content mod--contact">
+      <div class="contact__content">
+        <div class="contact__text-wrap">
+          
+          <!-- Subtítulo "CONTATO" -->
+          <div class="subheading-wrap mod--contact">
+            <div class="subheading__line-wrap">
+              <div class="subheading__line"></div>
+            </div>
+            <div class="subheading__text">CONTATO</div>
+          </div>
+
+          <!-- Bloco Central de Chamada -->
+          <div class="contact__text-center">
+            <p class="p mod--contact">Projetos, consultoria e gerenciamento.</p>
+            <h2 class="heading heading--size-38 mod--contact">Entre em contato conosco</h2>
+            
+            <!-- Link de E-mail com Efeito Hover -->
+            <div class="overflow-hidden mod--contact-link">
+              <a href="mailto:contato@saomiguelengenharia.com.br" class="contact__link mod--email">
+                contato@saomiguelengenharia.com.br
+              </a>
+            </div>
+
+            <!-- Link do WhatsApp / Telefone -->
+            <div class="overflow-hidden mod--contact-link">
+              <a 
+                href="https://wa.me/5554991400929?text=Ol%C3%A1!%20Gostaria%20de%20solicitar%20um%20or%C3%A7amento." 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                class="contact__link mod--phone"
+              >
+                (54) 99140-0929
+              </a>
+            </div>
+          </div>
+
+          <!-- Redes Sociais -->
+          <div class="social">
+            <a href="#" class="social__link mod--fb" aria-label="Facebook">
+              <img src="./contato/ico_soc-facebook.svg" alt="Facebook" class="social__icon" />
+            </a>
+            <a href="#" class="social__link mod--twitter" aria-label="Twitter">
+              <img src="./contato/ico_soc-twitter.svg" alt="Twitter" class="social__icon" />
+            </a>
+            <a 
+              href="https://www.instagram.com/saomiguelengenharia" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              class="social__link mod--inst" 
+              aria-label="Instagram"
+            >
+              <img src="./contato/ico_soc-instagram.svg" alt="Instagram" class="social__icon" />
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Vídeo em Background com Fallback -->
+    <div class="bg-video">
+      <video autoplay loop muted playsinline poster="./contato/foto_contato.webp">
+        <source src="./contato/bg-transcode.mp4" type="video/mp4" />
+        <img src="./contato/foto_contato.webp" alt="São Miguel Engenharia e Construção" />
+      </video>
     </div>
   </section>
 

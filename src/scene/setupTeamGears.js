@@ -23,10 +23,11 @@ export function setupTeamGears() {
     canvas,
     alpha: true,
     antialias: true,
-    powerPreference: 'high-performance'
+    powerPreference: 'high-performance',
+    precision: 'mediump'
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  const maxDPR = window.innerWidth <= 768 ? 1.85 : 2.0;
+  const maxDPR = window.innerWidth <= 768 ? 1.25 : 1.5;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDPR));
 
   // 4. Iluminação Dedicada (Frontal + Luzes Azuis Internas)
@@ -153,23 +154,20 @@ export function setupTeamGears() {
     updateGearPositions();
   });
 
-  // 7. Ouvinte de Scroll na Dobra Equipe (A saída só ocorre ao chegar no fim da dobra e retorna ao rolar para cima)
-  const teamSection = document.getElementById('team');
-  let lastTeamScrollTop = 0;
+  // 7. Ouvinte de Scroll nas Dobras (.section.mod--about)
   const MAX_SCROLL_SPEED = 0.025; // Teto de velocidade máxima de giro por scroll
-
   const clampSpeed = (val) => Math.max(-MAX_SCROLL_SPEED, Math.min(MAX_SCROLL_SPEED, val));
 
-  const updateScrollOffset = () => {
-    if (!teamSection || !state.active) return;
+  const updateScrollOffset = (activeSection) => {
+    if (!activeSection || !state.active) return;
     const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
     if (!isMobile) {
       state.targetScrollOffsetProgress = 0;
       return;
     }
 
-    const maxScroll = Math.max(1, teamSection.scrollHeight - teamSection.clientHeight);
-    const currentScroll = teamSection.scrollTop;
+    const maxScroll = Math.max(1, activeSection.scrollHeight - activeSection.clientHeight);
+    const currentScroll = activeSection.scrollTop;
 
     // Quando chega no limite inferior do scroll da dobra, as engrenagens saem da tela
     if (currentScroll >= maxScroll - 12) {
@@ -180,84 +178,100 @@ export function setupTeamGears() {
     }
   };
 
-  if (teamSection) {
-    teamSection.addEventListener('scroll', () => {
+  const foldSections = document.querySelectorAll('.section.mod--about');
+  foldSections.forEach(section => {
+    let lastSectionScrollTop = 0;
+    let touchStartY = 0;
+
+    section.addEventListener('scroll', () => {
       if (!state.active) return;
-      updateScrollOffset();
-      const currentScrollTop = teamSection.scrollTop;
-      const deltaY = currentScrollTop - lastTeamScrollTop;
-      lastTeamScrollTop = currentScrollTop;
+      updateScrollOffset(section);
+      const currentScrollTop = section.scrollTop;
+      const deltaY = currentScrollTop - lastSectionScrollTop;
+      lastSectionScrollTop = currentScrollTop;
 
       state.scrollVelocity = clampSpeed(state.scrollVelocity + deltaY * 0.0005);
     }, { passive: true });
 
-    teamSection.addEventListener('wheel', (event) => {
+    section.addEventListener('wheel', (event) => {
       if (!state.active) return;
-      updateScrollOffset();
+      updateScrollOffset(section);
       state.scrollVelocity = clampSpeed(state.scrollVelocity + event.deltaY * 0.00035);
     }, { passive: true });
 
-    let touchStartY = 0;
-    teamSection.addEventListener('touchstart', (e) => {
+    section.addEventListener('touchstart', (e) => {
       if (e.touches.length > 0) touchStartY = e.touches[0].clientY;
     }, { passive: true });
 
-    teamSection.addEventListener('touchmove', (e) => {
+    section.addEventListener('touchmove', (e) => {
       if (!state.active || e.touches.length === 0) return;
-      updateScrollOffset();
+      updateScrollOffset(section);
       const touchY = e.touches[0].clientY;
       const deltaY = touchStartY - touchY;
       touchStartY = touchY;
 
       state.scrollVelocity = clampSpeed(state.scrollVelocity + deltaY * 0.0006);
     }, { passive: true });
-  }
+  });
 
-  // 8. Loop de Renderização da Câmera Frontal (Rotação + Deslocamento Dinâmico de Saída pelo Scroll no Limite)
+  // 8. Loop de Renderização da Câmera Frontal (Otimizado: Pausa total quando inativo)
   const clock = new THREE.Clock();
   let animId = null;
 
-  const renderLoop = () => {
-    if (state.active) {
-      const delta = clock.getDelta();
-      const slowSpin = delta * 0.35; // Rotação ambiente contínua suave
-
-      state.rotLeft += slowSpin + state.scrollVelocity * 0.4;
-      state.rotRight -= (slowSpin + state.scrollVelocity * 0.4);
-      state.scrollVelocity *= 0.90; // Fricção fluida
-
-      const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
-
-      // Lerp ultra-suave e cadenciado do deslocamento de saída no limite (3.8% por frame no mobile para máxima fluidez)
-      const lerpFactor = isMobile ? 0.038 : 0.08;
-      state.scrollOffsetProgress += (state.targetScrollOffsetProgress - state.scrollOffsetProgress) * lerpFactor;
-
-      const exitDx = isMobile ? 4.5 : 0.0;
-      const exitDy = isMobile ? 3.0 : 0.0;
-      const offset = isMobile ? state.scrollOffsetProgress : 0.0;
-
-      if (state.leftGear) {
-        state.leftGear.rotation.z = state.rotLeft;
-        state.leftGear.position.x = state.baseLeftPos.x - exitDx * offset;
-        state.leftGear.position.y = state.baseLeftPos.y - exitDy * offset;
-        state.leftGear.position.z = state.baseLeftPos.z;
-      }
-
-      if (state.rightGear) {
-        state.rightGear.rotation.z = state.rotRight;
-        state.rightGear.position.x = state.baseRightPos.x + exitDx * offset;
-        state.rightGear.position.y = state.baseRightPos.y - exitDy * offset;
-        state.rightGear.position.z = state.baseRightPos.z;
-      }
-
-      renderer.render(scene, camera);
-    } else {
-      clock.getDelta();
+  const stopLoop = () => {
+    if (animId !== null) {
+      cancelAnimationFrame(animId);
+      animId = null;
     }
-    animId = requestAnimationFrame(renderLoop);
   };
 
-  renderLoop();
+  const startLoop = () => {
+    if (animId === null && state.active) {
+      clock.getDelta();
+      renderLoop();
+    }
+  };
+
+  const renderLoop = () => {
+    if (!state.active) {
+      stopLoop();
+      return;
+    }
+
+    const delta = clock.getDelta();
+    const slowSpin = delta * 0.35; // Rotação ambiente contínua suave
+
+    state.rotLeft += slowSpin + state.scrollVelocity * 0.4;
+    state.rotRight -= (slowSpin + state.scrollVelocity * 0.4);
+    state.scrollVelocity *= 0.90; // Fricção fluida
+
+    const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+
+    // Lerp ultra-suave e cadenciado do deslocamento de saída no limite
+    const lerpFactor = isMobile ? 0.038 : 0.08;
+    state.scrollOffsetProgress += (state.targetScrollOffsetProgress - state.scrollOffsetProgress) * lerpFactor;
+
+    const exitDx = isMobile ? 4.5 : 0.0;
+    const exitDy = isMobile ? 3.0 : 0.0;
+    const offset = isMobile ? state.scrollOffsetProgress : 0.0;
+
+    if (state.leftGear) {
+      state.leftGear.rotation.z = state.rotLeft;
+      state.leftGear.position.x = state.baseLeftPos.x - exitDx * offset;
+      state.leftGear.position.y = state.baseLeftPos.y - exitDy * offset;
+      state.leftGear.position.z = state.baseLeftPos.z;
+    }
+
+    if (state.rightGear) {
+      state.rightGear.rotation.z = state.rotRight;
+      state.rightGear.position.x = state.baseRightPos.x + exitDx * offset;
+      state.rightGear.position.y = state.baseRightPos.y - exitDy * offset;
+      state.rightGear.position.z = state.baseRightPos.z;
+    }
+
+    renderer.render(scene, camera);
+    animId = requestAnimationFrame(renderLoop);
+  };
 
   return {
     initGears,
@@ -266,6 +280,7 @@ export function setupTeamGears() {
       state.scrollVelocity = 0;
       state.scrollOffsetProgress = 0;
       state.targetScrollOffsetProgress = 0;
+      startLoop();
 
       if (!state.leftGear || !state.rightGear) return;
 

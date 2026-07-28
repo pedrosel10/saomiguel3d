@@ -27,8 +27,8 @@ export function setupScene(canvas) {
     powerPreference: 'high-performance'
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  // DPR de alta definição para mobile aproveitando a leveza do novo modelo 3D
-  const maxDPR = window.innerWidth <= 768 ? Math.min(window.devicePixelRatio, 2.5) : Math.min(window.devicePixelRatio, 2.0);
+  // DPR otimizado em alta definição para evitar gargalo de GPU em telas retina de alta densidade
+  const maxDPR = Math.min(window.devicePixelRatio, 1.75);
   renderer.setPixelRatio(maxDPR);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Sombras macias e de alta definição

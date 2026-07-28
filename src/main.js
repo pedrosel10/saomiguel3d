@@ -51,6 +51,8 @@ function init() {
   let skeletonUniformsRef = null;
   let callouts = null;
 
+  let isMainScenePaused = false;
+
   // Estado para as engrenagens 3D emergentes no eixo central (3 no mobile, 5 no desktop)
   const extraGearsState = {
     gear1: null,
@@ -136,6 +138,11 @@ function init() {
       pullState.xVelocity += deltaY * 0.00035;
     }
   }, { passive: true });
+
+  // Listener para pausar o render da cena 3D principal exatamente quando a dobra preta terminar de subir cobrindo 100% da tela
+  window.addEventListener('foldSlideUpComplete', () => {
+    isMainScenePaused = true;
+  });
 
   // Listener para sincronizar a inclinação lateral 3D de forma extremamente suave quando o usuário desliza o nível no mobile
   window.addEventListener('levelGaugeDrag', (event) => {
@@ -357,7 +364,7 @@ function init() {
   );
 
   // Animação 3D das engrenagens vindo de fora da tela pelo eixo Z central + Contrarrotação (3 no mobile, 5 no desktop)
-  function triggerEquipeGearAnimation() {
+  function triggerEquipeGearAnimation(targetSectionId = 'team') {
     if (!modelState.mesh) return;
 
     const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
@@ -404,6 +411,7 @@ function init() {
     extraGearsState.spinSpeed4 = 0;
     extraGearsState.spinSpeedCentral = 0;
 
+    isMainScenePaused = false;
     const tl = gsap.timeline();
 
     // 1. As engrenagens vem de fora da tela ao longo do eixo central Z e se posicionam estáticas no eixo
@@ -444,7 +452,7 @@ function init() {
 
     // 3. Após o movimento giratório em onda estar totalmente estabelecido, dispara a subida cadenciada da dobra
     tl.add(() => {
-      animateFoldSlideUp();
+      animateFoldSlideUp(targetSectionId);
     }, isMobile ? 1.5 : 2.45);
   }
 
@@ -453,6 +461,9 @@ function init() {
     if (!extraGearsState.active || !extraGearsState.gear1 || !extraGearsState.gear2) {
       return;
     }
+
+    // Reativar imediatamente o render da cena 3D principal antes da dobra descer
+    isMainScenePaused = false;
 
     const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
 
@@ -515,19 +526,31 @@ function init() {
     }, isMobile ? 0.1 : 0.2);
   }
 
-  // Ouvinte de clique nos cards/callouts para abrir a Seção Equipe
+  // Mapeamento dos IDs dos Callouts de 3D para as Seções das Dobras
+  const foldIdMap = {
+    'equipe': 'team',
+    'team': 'team',
+    'servicos': 'servicos',
+    'cases': 'clientes',
+    'clientes': 'clientes',
+    'contato': 'contato'
+  };
+
+  // Ouvinte de clique nos cards/callouts para abrir qualquer uma das 4 dobras
   window.addEventListener('calloutClick', (event) => {
     const data = event.detail;
-    if (data && (data.id === 'equipe' || data.id === 'team')) {
-      triggerEquipeGearAnimation();
+    if (data && data.id) {
+      const sectionId = foldIdMap[data.id] || data.id;
+      triggerEquipeGearAnimation(sectionId);
     }
   });
 
-  // Ouvinte para fechar/voltar da Seção Equipe para a experiência 3D hero
+  // Ouvinte para fechar/voltar de qualquer dobra para a experiência 3D hero
   window.addEventListener('calloutClose', (event) => {
     const data = event.detail;
-    if (data && (data.id === 'equipe' || data.id === 'team')) {
-      animateFoldSlideDown();
+    if (data && data.id) {
+      const sectionId = foldIdMap[data.id] || data.id;
+      animateFoldSlideDown(sectionId);
       triggerEquipeGearExitAnimation();
     }
   });
@@ -683,8 +706,8 @@ function init() {
       skeletonUniformsRef.uTime.value += delta;
     }
 
-    // Atualizar partículas de faísca
-    if (sparksEffect) {
+    // Atualizar partículas de faísca (Apenas quando a cena 3D principal não estiver pausada)
+    if (sparksEffect && !isMainScenePaused) {
       sparksEffect.update(delta);
     }
 
@@ -696,8 +719,10 @@ function init() {
     // Atualizar OrbitControls
     controls.update();
 
-    // Renderizar Cena
-    renderer.render(scene, camera);
+    // Renderizar Cena 3D Principal (Apenas quando visível para economizar GPU)
+    if (!isMainScenePaused) {
+      renderer.render(scene, camera);
+    }
   }
 
   animate();
