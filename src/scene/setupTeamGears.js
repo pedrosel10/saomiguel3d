@@ -28,8 +28,11 @@ export function setupTeamGears() {
     precision: 'highp'
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  const maxDPR = Math.min(window.devicePixelRatio || 1, 3.0);
+  const maxDPR = Math.min(window.devicePixelRatio || 1, 2.5);
   renderer.setPixelRatio(maxDPR);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.45;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.localClippingEnabled = true;
 
   // 4. Carregar o Mapa de Iluminação de Estúdio HDRI idêntico ao da Cena 1
@@ -259,7 +262,7 @@ export function setupTeamGears() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 
-    const maxDPR = Math.min(window.devicePixelRatio || 1, 3.0);
+    const maxDPR = Math.min(window.devicePixelRatio || 1, 2.5);
     renderer.setPixelRatio(maxDPR);
 
     updateGearPositions();
