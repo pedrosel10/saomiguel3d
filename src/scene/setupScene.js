@@ -30,7 +30,7 @@ export function setupScene(canvas) {
     precision: 'highp'
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  const maxDPR = isMobileDevice ? Math.min(window.devicePixelRatio, 2.5) : Math.min(window.devicePixelRatio, 3.0);
+  const maxDPR = isMobileDevice ? Math.min(window.devicePixelRatio, 1.8) : Math.min(window.devicePixelRatio, 3.0);
   renderer.setPixelRatio(maxDPR);
   renderer.shadowMap.enabled = false;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -68,23 +68,10 @@ export function setupScene(canvas) {
   floor.position.y = -1.88; // Posicionado com folga limpa abaixo da base da engrenagem 3D
   scene.add(floor);
 
-  // 6. Sombra Falsa Estática de Contato (Zero custo de GPU/ShadowMap)
-  const fakeShadowTex = createFakeShadowTexture();
-  const fakeShadowMat = new THREE.MeshBasicMaterial({
-    map: fakeShadowTex,
-    transparent: true,
-    opacity: 0.0, // Inicialmente 0.0 para fade-in sincronizado com a animação da engrenagem
-    depthWrite: false
-  });
-  const shadowFloor = new THREE.Mesh(new THREE.PlaneGeometry(6.5, 3.2), fakeShadowMat);
-  shadowFloor.rotation.x = -Math.PI / 2;
-  shadowFloor.position.set(0, -1.87, 0.2);
-  scene.add(shadowFloor);
+  // 6. Atualização responsiva da câmera, neblina e chão para mobile
+  updateResponsiveCamera(camera, scene, floor, null);
 
-  // 7. Atualização responsiva da câmera, neblina e chão para mobile
-  updateResponsiveCamera(camera, scene, floor, shadowFloor);
-
-  return { scene, camera, renderer, floor, shadowFloor, shadowFloorMat: fakeShadowMat, ISOMETRIC_POS, updateResponsiveCamera };
+  return { scene, camera, renderer, floor, shadowFloor: null, shadowFloorMat: null, ISOMETRIC_POS, updateResponsiveCamera };
 }
 
 export function updateResponsiveCamera(camera, scene, floor, shadowFloor) {
