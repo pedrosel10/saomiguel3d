@@ -272,7 +272,7 @@ export function setupTeamGears() {
     }
   };
 
-  const foldSections = document.querySelectorAll('.section.mod--about');
+  const foldSections = document.querySelectorAll('.section.fold-section');
   foldSections.forEach(section => {
     let lastSectionScrollTop = 0;
     let touchStartY = 0;
@@ -397,12 +397,20 @@ export function setupTeamGears() {
 
       const gearScale = isMobile ? 0.85 : 2.5;
 
-      // Posição estática nas bordas para preenchimento holográfico em laser
+      // Garante posições sincronizadas exatas antes de ativar a visibilidade
       state.baseLeftPos.set(targetLeftX, targetLeftY, targetLeftZ);
       state.baseRightPos.set(targetRightX, targetRightY, targetRightZ);
 
+      state.leftGear.position.copy(state.baseLeftPos);
+      state.rightGear.position.copy(state.baseRightPos);
+      state.leftGear.rotation.z = state.rotLeft;
+      state.rightGear.rotation.z = state.rotRight;
+
       state.leftGear.scale.set(gearScale, gearScale, gearScale);
       state.rightGear.scale.set(gearScale, gearScale, gearScale);
+
+      state.leftGear.visible = true;
+      state.rightGear.visible = true;
 
       // Função para atualizar a intensidade da luz azul interna das engrenagens laterais
       const setTeamInnerLights = (val) => {
@@ -429,17 +437,17 @@ export function setupTeamGears() {
 
       // Animação de construção laser holográfica de baixo para cima (sem rolamento)
       const tl = gsap.timeline({ delay: 0 });
-      const buildDuration = isMobile ? 5.2 : 2.0;
+      const buildDuration = isMobile ? 3.5 : 1.8;
 
       const lightObj = { intensity: 0.0 };
       tl.to(lightObj, {
         intensity: 160.0,
-        duration: isMobile ? 2.4 : 1.2,
+        duration: isMobile ? 2.0 : 1.0,
         ease: 'power2.out',
         onUpdate: () => {
           setTeamInnerLights(lightObj.intensity);
         }
-      }, isMobile ? 1.2 : 0.5);
+      }, isMobile ? 1.0 : 0.4);
 
       if (state.teamBuildUniforms && state.teamBuildUniforms.clipPlane) {
         tl.to(state.teamBuildUniforms.clipPlane, {
@@ -463,19 +471,29 @@ export function setupTeamGears() {
       }
 
       const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
-      const startLeftX = isMobile ? -8.0 : -18.0;
-      const startRightX = isMobile ? 8.0 : 18.0;
+      const targetLeftX = isMobile ? -0.9 : -8.15;
+      const targetRightX = isMobile ? 0.9 : 8.15;
+      const startLeftX = isMobile ? -5.5 : -18.0;
+      const startRightX = isMobile ? 5.5 : 18.0;
 
-      const exitDuration = isMobile ? 0.9 : 0.7;
-      const exitEase = 'power2.inOut';
+      const exitDuration = isMobile ? 0.8 : 0.6;
+      const exitEase = 'power2.in';
 
       const tl = gsap.timeline({
         onComplete: () => {
           state.active = false;
           state.scrollOffsetProgress = 0;
           state.targetScrollOffsetProgress = 0;
-          if (state.leftGear) state.leftGear.visible = false;
-          if (state.rightGear) state.rightGear.visible = false;
+          if (state.leftGear) {
+            state.leftGear.visible = false;
+            state.baseLeftPos.x = targetLeftX;
+            state.leftGear.position.x = targetLeftX;
+          }
+          if (state.rightGear) {
+            state.rightGear.visible = false;
+            state.baseRightPos.x = targetRightX;
+            state.rightGear.position.x = targetRightX;
+          }
           renderer.clear();
           if (onCompleteCallback) onCompleteCallback();
         }
@@ -494,18 +512,28 @@ export function setupTeamGears() {
       }, 0);
 
       tl.to(state, {
-        rotLeft: state.rotLeft - Math.PI * 1.8,
-        rotRight: state.rotRight + Math.PI * 1.8,
+        scrollVelocity: 0,
         duration: exitDuration,
-        ease: exitEase
+        ease: 'sine.out'
       }, 0);
     },
     hideInstant: () => {
       state.active = false;
       state.scrollOffsetProgress = 0;
       state.targetScrollOffsetProgress = 0;
-      if (state.leftGear) state.leftGear.visible = false;
-      if (state.rightGear) state.rightGear.visible = false;
+      const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+      const targetLeftX = isMobile ? -0.9 : -8.15;
+      const targetRightX = isMobile ? 0.9 : 8.15;
+      if (state.leftGear) {
+        state.leftGear.visible = false;
+        state.baseLeftPos.x = targetLeftX;
+        state.leftGear.position.x = targetLeftX;
+      }
+      if (state.rightGear) {
+        state.rightGear.visible = false;
+        state.baseRightPos.x = targetRightX;
+        state.rightGear.position.x = targetRightX;
+      }
       renderer.clear();
     }
   };

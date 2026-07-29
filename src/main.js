@@ -531,17 +531,7 @@ function init() {
       },
       () => {
         // 2. Muro desfeito totalmente revelando a Cena 1 com a engrenagem e câmera frontal
-        const TWO_PI = Math.PI * 2;
-        const currentRot = extraGearsState.centralRotation;
-        const targetCentralRot = Math.round(currentRot / TWO_PI) * TWO_PI;
-
-        // Parar o giro da engrenagem única de forma suave
-        gsap.to(extraGearsState, {
-          spinSpeedCentral: 0,
-          centralRotation: targetCentralRot,
-          duration: 1.2,
-          ease: 'power2.out'
-        });
+        extraGearsState.isExiting = true;
 
         // 3. Mover a câmera da posição Frontal de volta para a posição Isométrica habitual
         const basePos = (camera.userData && camera.userData.basePosition)
@@ -564,6 +554,8 @@ function init() {
               camera.userData.mouseWeight = 0.0;
             }
             extraGearsState.active = false;
+            extraGearsState.isExiting = false;
+            extraGearsState.centralRotation = 0;
             if (callouts && callouts.animateIn) {
               callouts.animateIn(0.3);
             }
@@ -611,10 +603,9 @@ function init() {
   // Ouvinte para fechar/voltar de qualquer dobra para a experiência 3D hero
   window.addEventListener('calloutClose', (event) => {
     const data = event.detail;
-    if (data && data.id) {
-      const sectionId = foldIdMap[data.id] || data.id;
-      triggerEquipeGearExitAnimation(sectionId);
-    }
+    const rawId = (data && data.id) ? data.id : 'team';
+    const sectionId = foldIdMap[rawId] || rawId;
+    triggerEquipeGearExitAnimation(sectionId);
   });
 
   // 6. Redimensionamento de Tela Responsivo
@@ -695,8 +686,15 @@ function init() {
         extraGearsState.gear4Rotation += delta * extraGearsState.spinSpeed4;
       }
 
-      // Durante a saída, a rotação central é conduzida suavemente pelo GSAP até a volta completa (360° exato)
-      if (!extraGearsState.isExiting) {
+      // Durante a saída, a rotação central desacelera por fricção e assenta suavemente no ângulo neutro (múltiplo de 360°)
+      if (extraGearsState.isExiting) {
+        extraGearsState.spinSpeedCentral *= Math.exp(-4.0 * delta);
+        extraGearsState.centralRotation += delta * extraGearsState.spinSpeedCentral;
+
+        const TWO_PI = Math.PI * 2;
+        const targetRot = Math.round(extraGearsState.centralRotation / TWO_PI) * TWO_PI;
+        extraGearsState.centralRotation += (targetRot - extraGearsState.centralRotation) * Math.min(1.0, 4.0 * delta);
+      } else {
         extraGearsState.centralRotation += delta * extraGearsState.spinSpeedCentral;
       }
 

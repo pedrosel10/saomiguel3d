@@ -1,8 +1,21 @@
 import gsap from 'gsap';
 
 let triggerRevealFn = null;
+let currentActiveSectionId = 'team';
+
+function animateCraneHookIn() {
+  const wrapper = document.getElementById('global-crane-close');
+  if (wrapper) {
+    gsap.fromTo(
+      wrapper,
+      { y: '-130%' },
+      { y: '0%', duration: 1.0, ease: 'back.out(1.2)', delay: 0.25 }
+    );
+  }
+}
 
 export function animateFoldSlideUp(sectionId = 'team') {
+  currentActiveSectionId = sectionId;
   const foldSection = document.getElementById(sectionId);
   if (!foldSection) return;
 
@@ -25,6 +38,7 @@ export function animateFoldSlideUp(sectionId = 'team') {
       force3D: true,
       onStart: () => {
         if (triggerRevealFn) triggerRevealFn(sectionId);
+        animateCraneHookIn();
       },
       onComplete: () => {
         window.dispatchEvent(new CustomEvent('foldSlideUpComplete', { detail: { id: sectionId } }));
@@ -34,6 +48,7 @@ export function animateFoldSlideUp(sectionId = 'team') {
 }
 
 export function showFoldInstant(sectionId = 'team') {
+  currentActiveSectionId = sectionId;
   const foldSection = document.getElementById(sectionId);
   if (!foldSection) return;
 
@@ -44,31 +59,39 @@ export function showFoldInstant(sectionId = 'team') {
   });
 
   if (triggerRevealFn) triggerRevealFn(sectionId);
+  animateCraneHookIn();
   window.dispatchEvent(new CustomEvent('foldSlideUpComplete', { detail: { id: sectionId } }));
 }
 
-export function hideFoldInstant(sectionId = 'team') {
-  const foldSection = document.getElementById(sectionId);
-  if (!foldSection) return;
+export function hideFoldInstant(sectionId) {
+  const wrapper = document.getElementById('global-crane-close');
+  if (wrapper) gsap.set(wrapper, { y: '-130%' });
 
-  gsap.set(foldSection, {
-    y: '100%',
-    opacity: 0
+  const foldSections = document.querySelectorAll('.section.fold-section');
+  foldSections.forEach(sec => {
+    gsap.set(sec, {
+      y: '100%',
+      opacity: 0
+    });
   });
 }
 
-export function animateFoldSlideDown(sectionId = 'team') {
-  const foldSection = document.getElementById(sectionId);
-  if (!foldSection) return;
+export function animateFoldSlideDown(sectionId) {
+  const wrapper = document.getElementById('global-crane-close');
+  if (wrapper) {
+    gsap.to(wrapper, { y: '-130%', duration: 0.4, ease: 'power2.in' });
+  }
 
   const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
 
-  // Animação GSAP recolhendo o painel de volta para o fundo via GPU
-  gsap.to(foldSection, {
-    y: '100%',
-    duration: isMobile ? 0.75 : 0.95,
-    ease: 'power3.inOut',
-    force3D: true
+  const foldSections = document.querySelectorAll('.section.fold-section');
+  foldSections.forEach(sec => {
+    gsap.to(sec, {
+      y: '100%',
+      duration: isMobile ? 0.75 : 0.95,
+      ease: 'power3.inOut',
+      force3D: true
+    });
   });
 }
 
@@ -76,51 +99,44 @@ export function setupTeamFold() {
   const initSectionReveal = (sectionEl) => {
     if (!sectionEl) return () => {};
 
-    const subLine = sectionEl.querySelector('.subheading__line');
-    const subText = sectionEl.querySelector('.subheading__text');
-    const img1 = sectionEl.querySelector('.team__img, .system__slide-img');
-    const txtWrap = sectionEl.querySelector('.team__txt-wrap, .system__slide-txt-wrap');
-    const advant = sectionEl.querySelector('.team__advant, .system__rich');
-    const advantTxtWraps = sectionEl.querySelectorAll('.team__advant-txt-wrap, .system__rich li');
+    const subLine = sectionEl.querySelector('.fold-subheading__line');
+    const subText = sectionEl.querySelector('.fold-subheading__text');
+    const headings = sectionEl.querySelectorAll('.fold-title, .service-title, .showcase-name');
+    const paragraphs = sectionEl.querySelectorAll('.fold-p, .service-list li, .contact-link');
+    const images = sectionEl.querySelectorAll('.editorial-img, .showcase-img');
+    const cards = sectionEl.querySelectorAll('.stat-block, .client-showcase, .service-block, .social-btn, .tab-pill');
 
-    if (subLine) subLine.style.width = "0%";
-    if (subText) subText.style.width = "0px";
-    if (img1) {
-      img1.style.height = "0px";
-      img1.style.transform = "scale(1.4)";
-    }
-    if (txtWrap) txtWrap.style.opacity = "0";
-    if (advant) advant.style.opacity = "0";
-
-    advantTxtWraps.forEach(el => {
-      el.style.transform = "translate3d(-110%, 0, 0)";
-      el.style.opacity = "0";
-    });
+    // Configuração Inicial (antes de aparecer)
+    if (subLine) gsap.set(subLine, { width: 0 });
+    if (subText) gsap.set(subText, { opacity: 0, x: -10 });
+    if (headings.length) gsap.set(headings, { opacity: 0, y: 20 });
+    if (paragraphs.length) gsap.set(paragraphs, { opacity: 0, y: 15 });
+    if (images.length) gsap.set(images, { opacity: 0, scale: 1.03 });
+    if (cards.length) gsap.set(cards, { opacity: 0, y: 20 });
 
     return () => {
-      setTimeout(() => {
-        if (subLine) subLine.style.width = "100%";
-        if (subText) subText.style.width = "auto";
-      }, 100);
-
-      setTimeout(() => {
-        if (img1) {
-          img1.style.height = "100%";
-          img1.style.transform = "scale(1)";
-        }
-      }, 300);
-
-      setTimeout(() => {
-        if (txtWrap) txtWrap.style.opacity = "1";
-        if (advant) advant.style.opacity = "1";
-
-        advantTxtWraps.forEach((el, index) => {
-          setTimeout(() => {
-            el.style.transform = "translate3d(0, 0, 0)";
-            el.style.opacity = "1";
-          }, index * 150);
-        });
-      }, 500);
+      const tl = gsap.timeline({ delay: 0.1 });
+      
+      if (subLine && subText) {
+        tl.to(subLine, { width: '100%', duration: 0.6, ease: 'power3.out' }, 0);
+        tl.to(subText, { opacity: 1, x: 0, duration: 0.4, ease: 'power2.out' }, 0.2);
+      }
+      
+      if (headings.length) {
+        tl.to(headings, { opacity: 1, y: 0, duration: 0.8, stagger: 0.1, ease: 'power3.out' }, 0.2);
+      }
+      
+      if (paragraphs.length) {
+        tl.to(paragraphs, { opacity: 1, y: 0, duration: 0.6, stagger: 0.05, ease: 'power2.out' }, 0.3);
+      }
+      
+      if (images.length) {
+        tl.to(images, { opacity: 1, scale: 1, duration: 1.2, stagger: 0.1, ease: 'power2.out' }, 0.2);
+      }
+      
+      if (cards.length) {
+        tl.to(cards, { opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: 'back.out(1.2)' }, 0.4);
+      }
     };
   };
 
@@ -160,7 +176,7 @@ export function setupTeamFold() {
   };
 
   // 1. Lógica das Abas da Dobra de Serviços (Construção | Projetos | PPCI)
-  const tabButtons = document.querySelectorAll(".system__tab-link");
+  const tabButtons = document.querySelectorAll(".tab-pill");
   const tabPanes = document.querySelectorAll(".system__tab");
   const titleHeading = document.getElementById("servicos-dynamic-heading");
 
@@ -188,6 +204,14 @@ export function setupTeamFold() {
       tabPanes.forEach(pane => {
         if (pane.id === targetTab) {
           pane.classList.add("active");
+          // Re-trigger GSAP stagger for new tab content
+          const images = pane.querySelectorAll('.editorial-img');
+          const blocks = pane.querySelectorAll('.service-block');
+          const lists = pane.querySelectorAll('.service-list li');
+          
+          gsap.fromTo(images, { opacity: 0, scale: 1.03 }, { opacity: 1, scale: 1, duration: 0.8, stagger: 0.1, ease: 'power2.out' });
+          gsap.fromTo(blocks, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: 'power3.out' });
+          gsap.fromTo(lists, { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.04, ease: 'power2.out', delay: 0.2 });
         } else {
           pane.classList.remove("active");
         }
@@ -195,96 +219,29 @@ export function setupTeamFold() {
     });
   });
 
-  // 2. Lógica de Drag & Scroll da Galeria de Clientes (Sweep Blue + Progresso 01/08 - Sem Layout Thrashing)
-  const clientesCarousel = document.getElementById("clientes-carousel");
-  const clientesProgressFill = document.getElementById("clientes-progress-fill");
-  const numDisplay = document.querySelector(".current-slide-num");
+  // Galeria de Clientes agora é um CSS Grid (não precisa de drag/scroll em JS)
 
-  if (clientesCarousel) {
-    let isDown = false;
-    let startX = 0;
-    let scrollLeft = 0;
-
-    // Cache permanente dos cards e seletores DOM para zerar reflows síncronos
-    const slides = Array.from(clientesCarousel.querySelectorAll('.swiper-slide.mod--gallery'));
-    const logoCards = slides.map(slide => slide.querySelector('.client-logo-card')).filter(Boolean);
-
-    let cachedMaxScroll = clientesCarousel.scrollWidth - clientesCarousel.clientWidth;
-    let lastSlide = -1;
-    let ticking = false;
-
-    window.addEventListener('resize', () => {
-      cachedMaxScroll = clientesCarousel.scrollWidth - clientesCarousel.clientWidth;
-    }, { passive: true });
-
-    clientesCarousel.addEventListener('mousedown', (e) => {
-      isDown = true;
-      startX = e.pageX - clientesCarousel.offsetLeft;
-      scrollLeft = clientesCarousel.scrollLeft;
-    });
-
-    clientesCarousel.addEventListener('mouseleave', () => { isDown = false; });
-    clientesCarousel.addEventListener('mouseup', () => { isDown = false; });
-
-    clientesCarousel.addEventListener('mousemove', (e) => {
-      if (!isDown) return;
-      e.preventDefault();
-      const x = e.pageX - clientesCarousel.offsetLeft;
-      const walk = (x - startX) * 1.8;
-      clientesCarousel.scrollLeft = scrollLeft - walk;
-    }, { passive: true });
-
-    const updateClientesProgress = () => {
-      const maxScroll = cachedMaxScroll > 0 ? cachedMaxScroll : (clientesCarousel.scrollWidth - clientesCarousel.clientWidth);
-      if (maxScroll <= 0) return;
-
-      const percentage = clientesCarousel.scrollLeft / maxScroll;
-      if (clientesProgressFill) {
-        clientesProgressFill.style.width = `${Math.max(12.5, percentage * 100)}%`;
-      }
-
-      const currentSlide = Math.min(8, Math.max(1, Math.round(percentage * 7) + 1));
-      if (currentSlide !== lastSlide) {
-        lastSlide = currentSlide;
-
-        if (numDisplay) {
-          numDisplay.textContent = currentSlide < 10 ? `0${currentSlide}` : `${currentSlide}`;
-        }
-
-        // Ativar a varredura Sweep Blue apenas no card visível sem querySelector repetido
-        logoCards.forEach((logoCard, idx) => {
-          if (idx + 1 === currentSlide) {
-            logoCard.classList.add('active');
-          } else {
-            logoCard.classList.remove('active');
-          }
-        });
-      }
-    };
-
-    clientesCarousel.addEventListener("scroll", () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(() => {
-          updateClientesProgress();
-          ticking = false;
-        });
-      }
-    }, { passive: true });
-
-    updateClientesProgress();
-  }
-
-  // 3. Botões Fechar / Voltar de todas as dobras
-  const closeBtns = document.querySelectorAll(".team-close-btn, .fold-close-btn");
+  // 3. Botões Fechar / Voltar de todas as dobras com animação de subida do gancho
+  const closeBtns = document.querySelectorAll(".fold-close-btn");
   closeBtns.forEach(btn => {
     btn.addEventListener("click", () => {
       const sectionId = btn.getAttribute("data-close") || "team";
       if (contatoVideo && sectionId === 'contato') {
         contatoVideo.pause();
       }
-      window.dispatchEvent(new CustomEvent('calloutClose', { detail: { id: sectionId } }));
+      const wrapper = btn.closest('.crane-close-wrapper');
+      if (wrapper) {
+        gsap.to(wrapper, {
+          y: '-130%',
+          duration: 0.45,
+          ease: 'power2.in',
+          onComplete: () => {
+            window.dispatchEvent(new CustomEvent('calloutClose', { detail: { id: sectionId } }));
+          }
+        });
+      } else {
+        window.dispatchEvent(new CustomEvent('calloutClose', { detail: { id: sectionId } }));
+      }
     });
   });
 }
-
