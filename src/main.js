@@ -366,7 +366,7 @@ function init() {
         clone.traverse(child => {
           if (child.isMesh) {
             child.material = extraGearMat;
-            child.castShadow = false;
+            child.castShadow = true; // Sombra ativada nos clones (baixa qualidade e otimizada)
             child.receiveShadow = false;
           }
         });
@@ -686,7 +686,7 @@ function init() {
 
     renderer.setSize(window.innerWidth, window.innerHeight);
     const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
-    const maxDPR = isMobileDevice ? 2.0 : Math.min(window.devicePixelRatio, 2.5);
+    const maxDPR = isMobileDevice ? Math.min(window.devicePixelRatio, 1.8) : Math.min(window.devicePixelRatio, 2.0);
     renderer.setPixelRatio(maxDPR);
   });
 

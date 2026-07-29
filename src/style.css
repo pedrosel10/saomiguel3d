@@ -44,22 +44,27 @@ body {
   overflow: hidden;
 }
 
-#webgl-canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 1;
-  outline: none;
-}
-
+#webgl-canvas,
+.team-webgl-canvas,
 .brick-transition-canvas {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
+  outline: none;
+  image-rendering: auto;
+  image-rendering: smooth;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+#webgl-canvas {
+  z-index: 1;
+}
+
+.brick-transition-canvas {
   z-index: 99999;
   pointer-events: none;
   display: none;
@@ -480,18 +485,18 @@ kbd {
   }
 
   .callout-content-box {
-    padding: 6px 14px !important;
+    padding: 10px 20px !important; /* Tamanho 30% maior no mobile */
     border-radius: 0px !important;
     border: none !important;
   }
 
   .callout-title {
-    font-size: 0.76rem !important;
+    font-size: 0.98rem !important; /* ~30% maior que 0.76rem */
     letter-spacing: normal !important;
   }
 
   .callout-title .char.space {
-    width: 0.25em !important;
+    width: 0.28em !important;
   }
 }
 

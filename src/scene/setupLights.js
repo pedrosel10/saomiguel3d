@@ -22,22 +22,22 @@ export function setupLights(scene, renderer) {
   const hemiLight = new THREE.HemisphereLight(0xeff6ff, 0x475569, 0.6);
   scene.add(hemiLight);
 
-  // 4. Key Light com projecao de sombra ativada para a engrenagem principal
+  // 4. Key Light com projeção de sombra ativada (baixa qualidade e alta performance para a engrenagem e seus clones)
   const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
   keyLight.position.set(4.0, 8.0, 6.0);
   const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
   keyLight.castShadow = true;
-  const shadowSize = isMobileDevice ? 256 : 1024;
+  const shadowSize = isMobileDevice ? 256 : 512; // Sombra leve em baixa resolução para os clones
   keyLight.shadow.mapSize.set(shadowSize, shadowSize);
-  keyLight.shadow.bias = -0.0005;
+  keyLight.shadow.bias = -0.0008;
   keyLight.shadow.normalBias = 0.02;
-  keyLight.shadow.radius = isMobileDevice ? 2.0 : 4.0;
-  keyLight.shadow.camera.left = -6;
-  keyLight.shadow.camera.right = 6;
-  keyLight.shadow.camera.top = 6;
-  keyLight.shadow.camera.bottom = -6;
+  keyLight.shadow.radius = isMobileDevice ? 1.5 : 2.5;
+  keyLight.shadow.camera.left = -12; // Limites expandidos para capturar a sombra dos 2 clones
+  keyLight.shadow.camera.right = 12;
+  keyLight.shadow.camera.top = 8;
+  keyLight.shadow.camera.bottom = -8;
   keyLight.shadow.camera.near = 0.5;
-  keyLight.shadow.camera.far = 25;
+  keyLight.shadow.camera.far = 28;
   scene.add(keyLight);
 
   // 5. Front Fill Light

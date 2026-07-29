@@ -19,20 +19,21 @@ export function setupScene(canvas) {
   camera.lookAt(0, 0, 0);
   camera.layers.enable(1); // Permite ver objetos do Layer 1 (Luz Azul exclusiva do 3D)
 
-  // 4. Renderer com ACESFilmic, PCFShadowMap e SRGBColorSpace em alta qualidade nativa (mobile & desktop)
+  const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
+
+  // 4. Renderer com ACESFilmic e SRGBColorSpace otimizado para Mobile & Desktop
   const renderer = new THREE.WebGLRenderer({
     canvas,
     antialias: true,
     alpha: true,
     powerPreference: 'high-performance',
-    precision: 'highp'
+    precision: isMobileDevice ? 'mediump' : 'highp'
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
-  const maxDPR = isMobileDevice ? 2.0 : Math.min(window.devicePixelRatio, 2.5);
+  const maxDPR = isMobileDevice ? Math.min(window.devicePixelRatio, 1.8) : Math.min(window.devicePixelRatio, 2.0);
   renderer.setPixelRatio(maxDPR);
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Sombras macias e de alta definição
+  renderer.shadowMap.type = isMobileDevice ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap; // Sombra rápida e leve no mobile
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.45;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -46,7 +47,7 @@ export function setupScene(canvas) {
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.wrapS = THREE.RepeatWrapping;
     tex.wrapT = THREE.RepeatWrapping;
-    tex.repeat.set(150, 150); // Escala bem menor para os detalhes do projeto caberem harmoniosamente
+    tex.repeat.set(36, 36); // Escala perfeita para os detalhes dos desenhos do projeto ficarem bem nítidos e evidentes
     tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
   });
 
@@ -54,13 +55,13 @@ export function setupScene(canvas) {
   const planeMat = new THREE.MeshStandardMaterial({
     map: floorTexture,
     bumpMap: noiseTexture, // Textura tátil sutil para o papel do estúdio não parecer plástico liso
-    bumpScale: 0.08,        // Granulação sutil e elegante
+    bumpScale: 0.05,        // Granulação sutil
     color: 0xffffff,       // Fundo branco limpo de estúdio
-    roughness: 0.65,
+    roughness: 0.50,
     metalness: 0.0,
-    envMapIntensity: 1.5,
+    envMapIntensity: 1.2,
     transparent: true,
-    opacity: 0.88,         // Opacidade perfeita para a textura_projeto
+    opacity: 1.0,          // 100% de opacidade para contraste e evidência total do projeto no chão
   });
 
   const floor = new THREE.Mesh(planeGeo, planeMat);
@@ -70,7 +71,7 @@ export function setupScene(canvas) {
   scene.add(floor);
 
   // Plano receptor de sombras de alta definição
-  const shadowFloorMat = new THREE.ShadowMaterial({ opacity: 0.32 });
+  const shadowFloorMat = new THREE.ShadowMaterial({ opacity: 0.35 });
   const shadowFloor = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), shadowFloorMat);
   shadowFloor.rotation.x = -Math.PI / 2;
   shadowFloor.position.y = -1.87;
@@ -104,7 +105,7 @@ export function updateResponsiveCamera(camera, scene, floor, shadowFloor) {
     if (floor) {
       floor.position.y = -1.88;
       if (floor.material) {
-        floor.material.opacity = 0.92;
+        floor.material.opacity = 1.0;
         floor.material.color.setHex(0xffffff);
       }
     }
@@ -112,17 +113,17 @@ export function updateResponsiveCamera(camera, scene, floor, shadowFloor) {
       shadowFloor.position.y = -1.87;
     }
 
-    // Neblina sutil empurrada mais para o fundo no mobile para revelar mais o chão
+    // Neblina empurrada para o fundo para manter os desenhos do chão 100% nítidos
     if (scene && scene.fog) {
       if (scene.fog.isFog) {
-        scene.fog.near = 15.0;
-        scene.fog.far = 42.0;
+        scene.fog.near = 18.0;
+        scene.fog.far = 50.0;
       } else {
-        scene.fog.density = 0.020;
+        scene.fog.density = 0.015;
       }
     }
   } else {
-    // No desktop: mantém o FOV de 26° e posição isométrica aproximada 10% mais perto (5.4, 4.68, 5.4)
+    // No desktop: mantém o FOV de 26° e posição isométrica
     camera.fov = 26;
     camera.position.set(5.4, 4.68, 5.4);
     camera.lookAt(0, 0, 0);
@@ -130,7 +131,7 @@ export function updateResponsiveCamera(camera, scene, floor, shadowFloor) {
     if (floor) {
       floor.position.y = -1.88;
       if (floor.material) {
-        floor.material.opacity = 0.85;
+        floor.material.opacity = 1.0;
         floor.material.color.setHex(0xffffff);
       }
     }
@@ -139,10 +140,10 @@ export function updateResponsiveCamera(camera, scene, floor, shadowFloor) {
     }
     if (scene && scene.fog) {
       if (scene.fog.isFog) {
-        scene.fog.near = 11.0;
-        scene.fog.far = 34.0;
+        scene.fog.near = 15.0;
+        scene.fog.far = 45.0;
       } else {
-        scene.fog.density = 0.032;
+        scene.fog.density = 0.022;
       }
     }
   }
