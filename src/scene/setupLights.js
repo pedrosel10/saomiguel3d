@@ -56,7 +56,7 @@ export function setupLights(scene, renderer) {
   scene.add(rimLight);
 
   // 8. Luz Azul Interna (Configuração personalizada pelo usuário)
-  const blueInnerLight = new THREE.PointLight(0x0066ff, 136.0, 1.5, 2.0);
+  const blueInnerLight = new THREE.PointLight(0x0066ff, 136.0, 6.0, 2.0);
   blueInnerLight.position.set(-0.2, -0.1, -0.5);
   blueInnerLight.castShadow = false;
   scene.add(blueInnerLight);

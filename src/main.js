@@ -434,217 +434,157 @@ function init() {
   );
 
   // Animação 3D das engrenagens com varredura laser holográfica na entrada (sem faíscas)
+  // Animação 3D da engrenagem única com transição frontal e rotação na entrada da dobra
   function triggerEquipeGearAnimation(targetSectionId = 'team') {
     if (!modelState.mesh) return;
 
     const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
 
-
-
-    // Desfazer os cards e linhas holográficas em animação reversa antes de subir a dobra
+    // 1. Desfazer os cards e linhas holográficas imediatamente
     if (callouts && callouts.animateOut) {
       callouts.animateOut(0.0);
     }
 
+    // Esconder engrenagens extras (manter apenas a engrenagem única principal)
+    if (extraGearsState.gear1) extraGearsState.gear1.visible = false;
+    if (extraGearsState.gear2) extraGearsState.gear2.visible = false;
+    if (extraGearsState.gear3) extraGearsState.gear3.visible = false;
+    if (extraGearsState.gear4) extraGearsState.gear4.visible = false;
+    if (extraGearsState.refGear1) extraGearsState.refGear1.visible = false;
+    if (extraGearsState.refGear2) extraGearsState.refGear2.visible = false;
+    if (extraGearsState.refGear3) extraGearsState.refGear3.visible = false;
+    if (extraGearsState.refGear4) extraGearsState.refGear4.visible = false;
+
     extraGearsState.active = true;
     extraGearsState.isExiting = false;
 
-    const TARGET_OFFSET_Z1 = isMobile ? 1.3 : 1.2; // Espaçamento 20% mais próximo (+1.2u)
-    const TARGET_OFFSET_Z2 = 2.4;                  // Espaçamento 20% mais próximo (+2.4u)
-
-    // Posicionar as engrenagens diretamente no eixo no local exato de destino
-    extraGearsState.gear1Z = TARGET_OFFSET_Z1;
-    extraGearsState.gear2Z = -TARGET_OFFSET_Z1;
-    extraGearsState.gear3Z = TARGET_OFFSET_Z2;
-    extraGearsState.gear4Z = -TARGET_OFFSET_Z2;
-
-    if (extraGearsState.gear1) {
-      extraGearsState.gear1.position.z = TARGET_OFFSET_Z1;
-      extraGearsState.gear1.visible = true;
-    }
-    if (extraGearsState.gear2) {
-      extraGearsState.gear2.position.z = -TARGET_OFFSET_Z1;
-      extraGearsState.gear2.visible = true;
-    }
-
-    if (!isMobile && extraGearsState.gear3 && extraGearsState.gear4) {
-      extraGearsState.gear3.position.z = TARGET_OFFSET_Z2;
-      extraGearsState.gear3.visible = true;
-      extraGearsState.gear4.position.z = -TARGET_OFFSET_Z2;
-      extraGearsState.gear4.visible = true;
-    }
-
-    // Função para atualizar a intensidade das luzes azuis internas
-    const setInnerLightsIntensity = (intensity) => {
-      [extraGearsState.gear1, extraGearsState.gear2, extraGearsState.gear3, extraGearsState.gear4].forEach(group => {
-        if (group) {
-          group.traverse(child => {
-            if (child.isPointLight) {
-              child.intensity = intensity;
-            }
-          });
-        }
-      });
-    };
-
-    // Resetar corte do plano, progresso do laser e intensidade da luz azul para 0.0 (sem piscar)
-    setInnerLightsIntensity(0.0);
-
-    if (extraGearsState.extraBuildUniforms && extraGearsState.extraBuildUniforms.clipPlane) {
-      const minY = extraGearsState.extraBuildUniforms.uMinY.value;
-      extraGearsState.extraBuildUniforms.clipPlane.constant = minY;
-      extraGearsState.extraBuildUniforms.uBuildProgress.value = 0.0;
-    }
-
-    extraGearsState.spinSpeed1 = 0;
-    extraGearsState.spinSpeed2 = 0;
-    extraGearsState.spinSpeed3 = 0;
-    extraGearsState.spinSpeed4 = 0;
-    extraGearsState.spinSpeedCentral = 0;
-
     isMainScenePaused = false;
-    const tl = gsap.timeline();
 
-    // Fade-in suave da luz azul interna com delay para acender só quando o laser atingir o centro
-    const lightFadeObj = { intensity: 0.0 };
-    tl.to(lightFadeObj, {
-      intensity: 136.0,
-      duration: isMobile ? 1.2 : 1.5,
-      ease: 'power2.out',
+    // 2. Mover a câmera para o "Modo Foco Frontal" (100% ortogonal e alinhado no eixo central Z: x:0, y:0, z:8.55)
+    const FRONTAL_FOCUS_POS = { x: 0.0, y: 0.0, z: 8.55 };
+    gsap.to(camera.position, {
+      x: FRONTAL_FOCUS_POS.x,
+      y: FRONTAL_FOCUS_POS.y,
+      z: FRONTAL_FOCUS_POS.z,
+      duration: 1.2,
+      ease: 'power2.inOut',
       onUpdate: () => {
-        setInnerLightsIntensity(lightFadeObj.intensity);
+        camera.lookAt(0, 0, 0);
+        controls.update();
       }
-    }, 0.6);
+    });
 
-    // 1. Animação de varredura laser revelando as engrenagens extras de 0% a 100% (de baixo para cima)
-    if (extraGearsState.extraBuildUniforms && extraGearsState.extraBuildUniforms.clipPlane) {
-      const maxY = extraGearsState.extraBuildUniforms.uMaxY.value;
-      const buildDuration = isMobile ? 1.6 : 2.2;
-
-      tl.to(extraGearsState.extraBuildUniforms.clipPlane, {
-        constant: maxY,
-        duration: buildDuration,
-        ease: 'power2.inOut'
-      }, 0);
-
-      tl.to(extraGearsState.extraBuildUniforms.uBuildProgress, {
-        value: 1.0,
-        duration: buildDuration,
-        ease: 'power2.inOut'
-      }, 0);
-    }
-
-    const TARGET_SPIN = isMobile ? 2.0 : 2.5;
-
-    // 2. EFEITO DE ONDA: Aguarda o preenchimento laser e inicia o giro em onda DA ÚLTIMA ATÉ A PRIMEIRA
-    if (isMobile) {
-      tl.to(extraGearsState, {
-        spinSpeed2: TARGET_SPIN,
-        spinSpeedCentral: TARGET_SPIN,
-        spinSpeed1: TARGET_SPIN,
+    // Mover a luz azul interna mais para a frente da engrenagem (z: 3.0) e intensificar a luz (136 -> 260)
+    if (lights && lights.blueInnerLight) {
+      gsap.to(lights.blueInnerLight.position, {
+        x: 0.0,
+        y: 0.0,
+        z: 3.0,
         duration: 1.2,
         ease: 'power2.inOut'
-      }, 0.8);
-    } else {
-      const WAVE_START_TIME = 0.9;
-      const STEP = 0.16;
-
-      // Da última (gear4 no fundo) até a primeira (gear3 na frente)
-      tl.to(extraGearsState, { spinSpeed4: TARGET_SPIN, duration: 1.2, ease: 'power2.out' }, WAVE_START_TIME);
-      tl.to(extraGearsState, { spinSpeed2: TARGET_SPIN, duration: 1.2, ease: 'power2.out' }, WAVE_START_TIME + STEP);
-      tl.to(extraGearsState, { spinSpeedCentral: TARGET_SPIN, duration: 1.2, ease: 'power2.out' }, WAVE_START_TIME + STEP * 2);
-      tl.to(extraGearsState, { spinSpeed1: TARGET_SPIN, duration: 1.2, ease: 'power2.out' }, WAVE_START_TIME + STEP * 3);
-      tl.to(extraGearsState, { spinSpeed3: TARGET_SPIN, duration: 1.2, ease: 'power2.out' }, WAVE_START_TIME + STEP * 4);
+      });
+      gsap.to(lights.blueInnerLight, {
+        intensity: 260.0,
+        duration: 1.2,
+        ease: 'power2.inOut'
+      });
     }
 
-    // 3. Dispara a transição universal de tijolos para todas as dobras (Serviços, Clientes, Contato, Equipe)
-    const delayBeforeBricks = isMobile ? 1.3 : 1.6;
+    // 3. Iniciar o giro da engrenagem única
+    const TARGET_SPIN = isMobile ? 2.0 : 2.5;
+    gsap.to(extraGearsState, {
+      spinSpeedCentral: TARGET_SPIN,
+      duration: 1.0,
+      ease: 'power2.inOut'
+    });
 
-    tl.add(() => {
+    // 4. Disparar a transição de tijolos azuis para cobrir a tela e abrir a dobra
+    const delayBeforeBricks = 0.9;
+    gsap.delayedCall(delayBeforeBricks, () => {
       brickTransition.startTransition(
         () => {
-          // No momento em que o muro de tijolos cobre 100% da tela:
           showFoldInstant(targetSectionId);
         },
-        () => {
-          // Muro de tijolos desfeito totalmente
-        }
+        () => {}
       );
-    }, delayBeforeBricks);
+    });
   }
 
-  // Animação 3D de saída sequencial das engrenagens e transição de tijolos
+  // Animação 3D de saída: Câmera volta da posição frontal para a isométrica e desliga a rotação antes de surgir os cards
   function triggerEquipeGearExitAnimation(activeSectionId = 'team') {
     const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
 
-    const runGearRetreat = () => {
-      // 1. Reativar o render da cena 3D principal (Cena 1)
-      isMainScenePaused = false;
-
-      if (callouts && callouts.animateIn) {
-        callouts.animateIn(isMobile ? 0.2 : 0.5);
-      }
-
-      const OFFSCREEN_FAR_Z1 = isMobile ? 14.0 : 35.0;
-      const OFFSCREEN_FAR_Z2 = 55.0;
-
-      const TWO_PI = Math.PI * 2;
-      const currentRot = extraGearsState.centralRotation;
-      const targetCentralRot = Math.round(currentRot / TWO_PI) * TWO_PI;
-
-      extraGearsState.isExiting = true;
-
-      const tl = gsap.timeline({
-        onComplete: () => {
-          extraGearsState.active = false;
-          extraGearsState.isExiting = false;
-          extraGearsState.centralRotation = 0;
-          if (extraGearsState.gear1) extraGearsState.gear1.visible = false;
-          if (extraGearsState.gear2) extraGearsState.gear2.visible = false;
-          if (extraGearsState.gear3) extraGearsState.gear3.visible = false;
-          if (extraGearsState.gear4) extraGearsState.gear4.visible = false;
-        }
-      });
-
-      const exitObj = {
-        gear1Z: OFFSCREEN_FAR_Z1,
-        gear2Z: -OFFSCREEN_FAR_Z1,
-        duration: isMobile ? 1.0 : 1.5,
-        ease: 'power3.in'
-      };
-
-      if (!isMobile) {
-        exitObj.gear3Z = OFFSCREEN_FAR_Z2;
-        exitObj.gear4Z = -OFFSCREEN_FAR_Z2;
-      }
-
-      tl.to(extraGearsState, exitObj, isMobile ? 0.2 : 0.4);
-
-      tl.to(extraGearsState, {
-        spinSpeed1: 0,
-        spinSpeed2: 0,
-        spinSpeed3: 0,
-        spinSpeed4: 0,
-        spinSpeedCentral: 0,
-        centralRotation: targetCentralRot,
-        duration: isMobile ? 1.2 : 1.7,
-        ease: 'power2.out'
-      }, isMobile ? 0.1 : 0.2);
-    };
-
-    // 1. Inicia a construção da parede de tijolos imediatamente sobre a dobra ativa (Serviços, Clientes, Contato ou Equipe)
+    // 1. Muro de tijolos fecha 100% sobre a dobra ativa
     brickTransition.startTransition(
       () => {
-        // 2. Quando o muro de tijolos fecha 100% cobrindo a tela:
-        // Desativa a dobra ativa e as engrenagens laterais e ativa a cena 1
+        // No momento em que o muro de tijolos tampa a tela 100%:
         hideFoldInstant(activeSectionId);
         if (teamGears && teamGears.hideInstant) {
           teamGears.hideInstant();
         }
-        runGearRetreat();
+        isMainScenePaused = false;
+
+        // Câmera é posicionada no "Modo Foco Frontal" (x:0, y:0, z:8.55) para a transição de retorno
+        camera.position.set(0.0, 0.0, 8.55);
+        camera.lookAt(0, 0, 0);
+        controls.update();
       },
       () => {
-        // 3. Muro desfeito totalmente revelando a Cena 1 pronta
+        // 2. Muro desfeito totalmente revelando a Cena 1 com a engrenagem e câmera frontal
+        const TWO_PI = Math.PI * 2;
+        const currentRot = extraGearsState.centralRotation;
+        const targetCentralRot = Math.round(currentRot / TWO_PI) * TWO_PI;
+
+        // Parar o giro da engrenagem única de forma suave
+        gsap.to(extraGearsState, {
+          spinSpeedCentral: 0,
+          centralRotation: targetCentralRot,
+          duration: 1.2,
+          ease: 'power2.out'
+        });
+
+        // 3. Mover a câmera da posição Frontal de volta para a posição Isométrica habitual
+        const basePos = (camera.userData && camera.userData.basePosition)
+          ? camera.userData.basePosition
+          : { x: 5.4, y: 4.68, z: 5.4 };
+
+        gsap.to(camera.position, {
+          x: basePos.x,
+          y: basePos.y,
+          z: basePos.z,
+          duration: 1.6,
+          ease: 'power3.inOut',
+          onUpdate: () => {
+            camera.lookAt(0, 0, 0);
+            controls.update();
+          },
+          onComplete: () => {
+            // Resetar o peso do mouse para 0.0 para garantir transição 100% imperceptível sem pulo
+            if (camera.userData) {
+              camera.userData.mouseWeight = 0.0;
+            }
+            extraGearsState.active = false;
+            if (callouts && callouts.animateIn) {
+              callouts.animateIn(0.3);
+            }
+          }
+        });
+
+        // Retornar a luz azul interna para dentro do furo e restaurar intensidade original (260 -> 136)
+        if (lights && lights.blueInnerLight) {
+          gsap.to(lights.blueInnerLight.position, {
+            x: -0.2,
+            y: -0.1,
+            z: -0.5,
+            duration: 1.6,
+            ease: 'power3.inOut'
+          });
+          gsap.to(lights.blueInnerLight, {
+            intensity: 136.0,
+            duration: 1.6,
+            ease: 'power3.inOut'
+          });
+        }
       }
     );
   }
@@ -721,22 +661,23 @@ function init() {
     pullState.xAngle = THREE.MathUtils.clamp(pullState.xAngle, -MAX_ROTATION_30_PERCENT, MAX_ROTATION_30_PERCENT);
 
     // Movimento orbital dinâmico da CÂMERA reagindo ao mouse (movimento sutil e elegante do cenário 3D)
-    if (camera.userData && camera.userData.basePosition && camera.userData.isIntroComplete) {
-      // Suavização do peso do mouse (0.0 -> 1.0) para eliminar totalmente qualquer pulo pós-carregamento
+    if (camera.userData && camera.userData.basePosition && camera.userData.isIntroComplete && !extraGearsState.active) {
+      // Suavização progressiva do peso do mouse (0.0 -> 1.0) para transição 100% fluida e sem saltos
       if (camera.userData.mouseWeight === undefined) camera.userData.mouseWeight = 0.0;
-      camera.userData.mouseWeight += (1.0 - camera.userData.mouseWeight) * 0.04;
+      camera.userData.mouseWeight += (1.0 - camera.userData.mouseWeight) * 0.025;
 
       const weight = camera.userData.mouseWeight;
       const basePos = camera.userData.basePosition;
-      const camPos = basePos.clone();
+      const targetCamPos = basePos.clone();
 
       // Rotação orbital sutil da câmera (~3.4° max no eixo Y)
-      camPos.applyAxisAngle(new THREE.Vector3(0, 1, 0), mouse.x * 0.06 * weight);
+      targetCamPos.applyAxisAngle(new THREE.Vector3(0, 1, 0), mouse.x * 0.06 * weight);
 
       // Deslocamento de altura sutil (~0.12u max no eixo Y)
-      camPos.y += mouse.y * 0.12 * weight;
+      targetCamPos.y += mouse.y * 0.12 * weight;
 
-      camera.position.copy(camPos);
+      // Interpolação suave LERP da câmera para a nova posição reagindo ao mouse
+      camera.position.lerp(targetCamPos, 0.08);
       camera.lookAt(0, 0, 0);
     }
 
@@ -780,7 +721,8 @@ function init() {
     }
 
     if (modelState.mesh) {
-      // O modelo agora não gira sozinho no eixo Y; a câmera que orbita todo o mundo 3D
+      // Travar eixos X e Y cravados para alinhamento perfeito no eixo Z central
+      modelState.mesh.rotation.x = 0;
       modelState.mesh.rotation.y = 0;
 
       // Rotação no eixo Z com suporte à contrarrotação da animação da equipe
