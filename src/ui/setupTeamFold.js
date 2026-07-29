@@ -11,17 +11,17 @@ export function animateFoldSlideUp(sectionId = 'team') {
   // Garante que o scroll interno do painel inicie no topo
   foldSection.scrollTop = 0;
 
-  // Animação GSAP do painel da dobra subindo com aceleração por GPU
+  // Animação GSAP 100% acelerada via GPU usando porcentagem pura y: '100%' -> y: '0%'
   gsap.fromTo(
     foldSection,
     {
-      y: '100vh',
+      y: '100%',
       opacity: 1
     },
     {
-      y: '0vh',
-      duration: isMobile ? 0.9 : 1.1,
-      ease: 'power3.out',
+      y: '0%',
+      duration: isMobile ? 0.85 : 1.1,
+      ease: 'power4.out',
       force3D: true,
       onStart: () => {
         if (triggerRevealFn) triggerRevealFn(sectionId);
@@ -33,17 +33,41 @@ export function animateFoldSlideUp(sectionId = 'team') {
   );
 }
 
+export function showFoldInstant(sectionId = 'team') {
+  const foldSection = document.getElementById(sectionId);
+  if (!foldSection) return;
+
+  foldSection.scrollTop = 0;
+  gsap.set(foldSection, {
+    y: '0%',
+    opacity: 1
+  });
+
+  if (triggerRevealFn) triggerRevealFn(sectionId);
+  window.dispatchEvent(new CustomEvent('foldSlideUpComplete', { detail: { id: sectionId } }));
+}
+
+export function hideFoldInstant(sectionId = 'team') {
+  const foldSection = document.getElementById(sectionId);
+  if (!foldSection) return;
+
+  gsap.set(foldSection, {
+    y: '100%',
+    opacity: 0
+  });
+}
+
 export function animateFoldSlideDown(sectionId = 'team') {
   const foldSection = document.getElementById(sectionId);
   if (!foldSection) return;
 
   const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
 
-  // Animação GSAP recolhendo o painel de volta para o fundo
+  // Animação GSAP recolhendo o painel de volta para o fundo via GPU
   gsap.to(foldSection, {
-    y: '100vh',
-    duration: isMobile ? 1.0 : 1.3,
-    ease: 'power2.inOut',
+    y: '100%',
+    duration: isMobile ? 0.75 : 0.95,
+    ease: 'power3.inOut',
     force3D: true
   });
 }

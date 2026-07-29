@@ -30,6 +30,7 @@ export function setupTeamGears() {
   const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
   const maxDPR = isMobileDevice ? 2.0 : Math.min(window.devicePixelRatio, 2.5);
   renderer.setPixelRatio(maxDPR);
+  renderer.localClippingEnabled = true;
 
   // 4. Iluminação Dedicada (Frontal + Luzes Azuis Internas)
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.95);
@@ -59,13 +60,105 @@ export function setupTeamGears() {
     targetScrollOffsetProgress: 0
   };
 
-  // Função utilitária para clonar o modelo 3D removendo apenas as malhas de wireframe
+  // Plano de corte e uniforms para a varredura holográfica em laser das engrenagens laterais
+  const teamClipPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 8.0);
+
+  const teamBuildUniforms = {
+    clipPlane: teamClipPlane,
+    uBuildProgress: { value: 1.0 },
+    uMinY: { value: -8.0 },
+    uMaxY: { value: 8.0 }
+  };
+
+  let teamGearMat = null;
+
+  // Função utilitária para clonar o modelo 3D com o material do laser de varredura
   const cloneCleanMesh = (source) => {
+    if (!teamGearMat && source) {
+      // Reutilizar mapas de textura do modelo original
+      let origMat = null;
+      source.traverse(child => {
+        if (child.isMesh && child.material && child.material.map) {
+          origMat = child.material;
+        }
+      });
+
+      teamGearMat = new THREE.MeshStandardMaterial({
+        color: new THREE.Color('#051b42'),
+        map: origMat ? origMat.map : null,
+        normalMap: origMat ? origMat.normalMap : null,
+        normalScale: new THREE.Vector2(1.0, 1.0),
+        roughnessMap: origMat ? origMat.roughnessMap : null,
+        metalnessMap: origMat ? origMat.metalnessMap : null,
+        metalness: 0.95,
+        roughness: 0.35,
+        envMapIntensity: 1.2,
+        clippingPlanes: [teamClipPlane],
+        clipShadows: true,
+        side: THREE.DoubleSide
+      });
+
+      teamGearMat.onBeforeCompile = (shader) => {
+        shader.uniforms.uBuildProgress = teamBuildUniforms.uBuildProgress;
+        shader.uniforms.uMinY = teamBuildUniforms.uMinY;
+        shader.uniforms.uMaxY = teamBuildUniforms.uMaxY;
+
+        shader.vertexShader = `
+          varying vec3 vWorldPosition;
+          ${shader.vertexShader}
+        `.replace(
+          '#include <begin_vertex>',
+          `
+          #include <begin_vertex>
+          vWorldPosition = (modelMatrix * vec4(transformed, 1.0)).xyz;
+          `
+        );
+
+        shader.fragmentShader = `
+          uniform float uBuildProgress;
+          uniform float uMinY;
+          uniform float uMaxY;
+          varying vec3 vWorldPosition;
+          ${shader.fragmentShader}
+        `.replace(
+          '#include <dithering_fragment>',
+          `
+          #include <dithering_fragment>
+          float buildHeight = mix(uMinY, uMaxY, uBuildProgress);
+          
+          if (uBuildProgress < 1.0) {
+            float dist = buildHeight - vWorldPosition.y;
+            float scanWidth = 0.25;
+            if (dist > 0.0 && dist < scanWidth) {
+              float glow = smoothstep(scanWidth, 0.0, dist);
+              vec3 cyanGlow = vec3(0.0, 0.75, 1.0);
+              float hLines = step(0.65, sin(vWorldPosition.y * 150.0));
+              float vLines = step(0.70, sin(vWorldPosition.x * 110.0) * sin(vWorldPosition.z * 110.0));
+              float grid = max(hLines, vLines);
+              float scanEdge = smoothstep(0.04, 0.0, dist);
+              float endFade = smoothstep(1.0, 0.92, uBuildProgress);
+              
+              gl_FragColor.rgb = mix(
+                gl_FragColor.rgb, 
+                cyanGlow * 3.5, 
+                (glow * 0.3 + grid * glow * 0.5 + scanEdge * 0.8) * endFade
+              );
+            }
+          }
+          `
+        );
+      };
+    }
+
     const clone = source.clone(true);
     const toRemove = [];
     clone.traverse((child) => {
       if (child.name === 'WireframeSkeleton') {
         toRemove.push(child);
+      } else if (child.isMesh) {
+        if (teamGearMat) child.material = teamGearMat;
+        child.castShadow = false;
+        child.receiveShadow = false;
       }
     });
     toRemove.forEach((child) => {
@@ -78,10 +171,11 @@ export function setupTeamGears() {
   const initGears = (sourceMesh) => {
     if (!sourceMesh || state.leftGear) return;
 
+    state.teamBuildUniforms = teamBuildUniforms;
+
     // Engrenagem Esquerda (Visão Frontal - Sem malhas de wireframe/hover)
     const gL = new THREE.Group();
     const cleanL = cloneCleanMesh(sourceMesh);
-    cleanL.traverse(child => { if (child.isMesh) { child.castShadow = false; child.receiveShadow = false; } });
     gL.add(cleanL);
     gL.add(createInnerBlueLight());
     scene.add(gL);
@@ -89,7 +183,6 @@ export function setupTeamGears() {
     // Engrenagem Direita (Visão Frontal - Sem malhas de wireframe/hover)
     const gR = new THREE.Group();
     const cleanR = cloneCleanMesh(sourceMesh);
-    cleanR.traverse(child => { if (child.isMesh) { child.castShadow = false; child.receiveShadow = false; } });
     gR.add(cleanR);
     gR.add(createInnerBlueLight());
     scene.add(gR);
@@ -304,36 +397,63 @@ export function setupTeamGears() {
 
       const gearScale = isMobile ? 0.85 : 2.5;
 
-      // Posição inicial GSAP fora da tela nas laterais
-      state.baseLeftPos.set(startLeftX, targetLeftY, targetLeftZ);
-      state.baseRightPos.set(startRightX, targetRightY, targetRightZ);
+      // Posição estática nas bordas para preenchimento holográfico em laser
+      state.baseLeftPos.set(targetLeftX, targetLeftY, targetLeftZ);
+      state.baseRightPos.set(targetRightX, targetRightY, targetRightZ);
 
       state.leftGear.scale.set(gearScale, gearScale, gearScale);
       state.rightGear.scale.set(gearScale, gearScale, gearScale);
 
-      // Animação GSAP de Entrada (Dispara IMEDIATAMENTE assim que a dobra atinge o topo)
+      // Função para atualizar a intensidade da luz azul interna das engrenagens laterais
+      const setTeamInnerLights = (val) => {
+        [state.leftGear, state.rightGear].forEach(group => {
+          if (group) {
+            group.traverse(child => {
+              if (child.isPointLight) child.intensity = val;
+            });
+          }
+        });
+      };
+
+      setTeamInnerLights(0.0);
+
+      const minY = -6.0;
+      const maxY = 6.0;
+
+      if (state.teamBuildUniforms && state.teamBuildUniforms.clipPlane) {
+        state.teamBuildUniforms.uMinY.value = minY;
+        state.teamBuildUniforms.uMaxY.value = maxY;
+        state.teamBuildUniforms.clipPlane.constant = minY;
+        state.teamBuildUniforms.uBuildProgress.value = 0.0;
+      }
+
+      // Animação de construção laser holográfica de baixo para cima (sem rolamento)
       const tl = gsap.timeline({ delay: 0 });
+      const buildDuration = isMobile ? 5.2 : 2.0;
 
-      // 1. As 2 engrenagens deslizam suavemente para as posições de borda
-      tl.to(state.baseLeftPos, {
-        x: targetLeftX,
-        duration: isMobile ? 1.0 : 0.8,
-        ease: 'power3.out'
-      }, 0);
+      const lightObj = { intensity: 0.0 };
+      tl.to(lightObj, {
+        intensity: 160.0,
+        duration: isMobile ? 2.4 : 1.2,
+        ease: 'power2.out',
+        onUpdate: () => {
+          setTeamInnerLights(lightObj.intensity);
+        }
+      }, isMobile ? 1.2 : 0.5);
 
-      tl.to(state.baseRightPos, {
-        x: targetRightX,
-        duration: isMobile ? 1.0 : 0.8,
-        ease: 'power3.out'
-      }, 0);
+      if (state.teamBuildUniforms && state.teamBuildUniforms.clipPlane) {
+        tl.to(state.teamBuildUniforms.clipPlane, {
+          constant: maxY,
+          duration: buildDuration,
+          ease: 'power2.inOut'
+        }, 0);
 
-      // 2. Giro mais lento e cadenciado no SENTIDO CONTRÁRIO durante a entrada
-      tl.to(state, {
-        rotLeft: state.rotLeft - Math.PI * 1.2,
-        rotRight: state.rotRight + Math.PI * 1.2,
-        duration: isMobile ? 1.0 : 0.8,
-        ease: 'power3.out'
-      }, 0);
+        tl.to(state.teamBuildUniforms.uBuildProgress, {
+          value: 1.0,
+          duration: buildDuration,
+          ease: 'power2.inOut'
+        }, 0);
+      }
     },
     hide: (onCompleteCallback) => {
       if (!state.leftGear || !state.rightGear) {
@@ -379,6 +499,14 @@ export function setupTeamGears() {
         duration: exitDuration,
         ease: exitEase
       }, 0);
+    },
+    hideInstant: () => {
+      state.active = false;
+      state.scrollOffsetProgress = 0;
+      state.targetScrollOffsetProgress = 0;
+      if (state.leftGear) state.leftGear.visible = false;
+      if (state.rightGear) state.rightGear.visible = false;
+      renderer.clear();
     }
   };
 }

@@ -10,8 +10,9 @@ import { setupUI } from './ui/setupUI.js';
 import { setupSparks } from './effects/setupSparks.js';
 import { preloadSmoke } from './effects/landingSmoke.js';
 import { setupCallouts } from './ui/setupCallouts.js';
-import { setupTeamFold, animateFoldSlideUp, animateFoldSlideDown } from './ui/setupTeamFold.js';
+import { setupTeamFold, animateFoldSlideUp, animateFoldSlideDown, showFoldInstant, hideFoldInstant } from './ui/setupTeamFold.js';
 import { setupTeamGears } from './scene/setupTeamGears.js';
+import { brickTransition } from './effects/brickTransition.js';
 
 function init() {
   const canvas = document.getElementById('webgl-canvas');
@@ -281,7 +282,20 @@ function init() {
         return light;
       };
 
-      // Material simplificado e ultra-leve para as engrenagens extras de transicao (sem calculo de sombra nem clearcoat)
+      const minYVal = buildUniforms ? buildUniforms.uMinY.value : -2.0;
+      const maxYVal = buildUniforms ? buildUniforms.uMaxY.value : 2.5;
+
+      const extraClipPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), maxYVal);
+
+      // Uniforms para a varredura laser holográfica de construção das engrenagens extras (sem faíscas)
+      const extraBuildUniforms = {
+        clipPlane: extraClipPlane,
+        uBuildProgress: { value: 1.0 },
+        uMinY: { value: minYVal },
+        uMaxY: { value: maxYVal }
+      };
+
+      // Material simplificado e ultra-leve com suporte ao laser holográfico de varredura
       const extraGearMat = new THREE.MeshStandardMaterial({
         color: new THREE.Color('#051b42'),
         map: gearMaterial.map,
@@ -292,8 +306,60 @@ function init() {
         metalness: 0.95,
         roughness: 0.35,
         envMapIntensity: 1.2,
+        clippingPlanes: [extraClipPlane],
+        clipShadows: true,
         side: THREE.DoubleSide
       });
+
+      extraGearMat.onBeforeCompile = (shader) => {
+        shader.uniforms.uBuildProgress = extraBuildUniforms.uBuildProgress;
+        shader.uniforms.uMinY = extraBuildUniforms.uMinY;
+        shader.uniforms.uMaxY = extraBuildUniforms.uMaxY;
+
+        shader.vertexShader = `
+          varying vec3 vWorldPosition;
+          ${shader.vertexShader}
+        `.replace(
+          '#include <begin_vertex>',
+          `
+          #include <begin_vertex>
+          vWorldPosition = (modelMatrix * vec4(transformed, 1.0)).xyz;
+          `
+        );
+
+        shader.fragmentShader = `
+          uniform float uBuildProgress;
+          uniform float uMinY;
+          uniform float uMaxY;
+          varying vec3 vWorldPosition;
+          ${shader.fragmentShader}
+        `.replace(
+          '#include <dithering_fragment>',
+          `
+          #include <dithering_fragment>
+          float buildHeight = mix(uMinY, uMaxY, uBuildProgress);
+          
+          if (uBuildProgress < 1.0) {
+            float dist = buildHeight - vWorldPosition.y;
+            if (dist > 0.0 && dist < 0.60) {
+              float glow = smoothstep(0.60, 0.0, dist);
+              vec3 cyanGlow = vec3(0.0, 0.75, 1.0);
+              float hLines = step(0.65, sin(vWorldPosition.y * 120.0));
+              float vLines = step(0.70, sin(vWorldPosition.x * 90.0) * sin(vWorldPosition.z * 90.0));
+              float grid = max(hLines, vLines);
+              float scanEdge = smoothstep(0.08, 0.0, dist);
+              float endFade = smoothstep(1.0, 0.92, uBuildProgress);
+              
+              gl_FragColor.rgb = mix(
+                gl_FragColor.rgb, 
+                cyanGlow * 4.0, 
+                (glow * 0.4 + grid * glow * 0.7 + scanEdge * 0.9) * endFade
+              );
+            }
+          }
+          `
+        );
+      };
 
       const cloneExtraMesh = (source) => {
         const clone = source.clone(true);
@@ -349,44 +415,10 @@ function init() {
         teamGears.initGears(loadedModel.children[0] || loadedModel);
       }
 
-      // Pré-compilar no WebGL Main Renderer todos os materiais, texturas e PointLights das engrenagens extras
-      if (extraGearsState.gear1) {
-        extraGearsState.gear1.position.z = 200;
-        extraGearsState.gear1.visible = true;
-      }
-      if (extraGearsState.gear2) {
-        extraGearsState.gear2.position.z = -200;
-        extraGearsState.gear2.visible = true;
-      }
-      if (extraGearsState.gear3) {
-        extraGearsState.gear3.position.z = 200;
-        extraGearsState.gear3.visible = true;
-      }
-      if (extraGearsState.gear4) {
-        extraGearsState.gear4.position.z = -200;
-        extraGearsState.gear4.visible = true;
-      }
+      // Guardar referência global dos uniforms do laser extra
+      extraGearsState.extraBuildUniforms = extraBuildUniforms;
 
-      try {
-        renderer.compile(scene, camera);
-        renderer.render(scene, camera); // Força compilação de texturas e shaders no VRAM no loading
-      } catch (e) {
-        console.warn('Pre-compile main renderer error:', e);
-      }
-
-      if (extraGearsState.gear1) extraGearsState.gear1.visible = false;
-      if (extraGearsState.gear2) extraGearsState.gear2.visible = false;
-      if (extraGearsState.gear3) extraGearsState.gear3.visible = false;
-      if (extraGearsState.gear4) extraGearsState.gear4.visible = false;
-
-      // Pré-decodificar na CPU/GPU a imagem da equipe para não engasgar a primeira renderização DOM
-      const teamImg = new Image();
-      teamImg.src = './foto_rodrigo.jpeg';
-      if (teamImg.decode) {
-        teamImg.decode().catch(() => {});
-      }
-
-      // Ocultar tela de carregamento e iniciar a sequência de animação 3D de entrada em seguida no próximo frame
+      // Ocultar tela de carregamento e iniciar a sequência de animação 3D de entrada
       ui.hideLoader(() => {
         requestAnimationFrame(() => {
           setupAnimations(camera, lights, controls, buildUniforms, shadowFloorMat);
@@ -402,7 +434,7 @@ function init() {
     }
   );
 
-  // Animação 3D das engrenagens vindo de fora da tela pelo eixo Z central + Contrarrotação (3 no mobile, 5 no desktop)
+  // Animação 3D das engrenagens com varredura laser holográfica na entrada (sem faíscas)
   function triggerEquipeGearAnimation(targetSectionId = 'team') {
     if (!modelState.mesh) return;
 
@@ -420,33 +452,52 @@ function init() {
     extraGearsState.active = true;
     extraGearsState.isExiting = false;
 
-    // Definir posições de fora da tela PRIMEIRO antes de tornar as engrenagens visíveis
-    const OFFSCREEN_FAR_Z1 = isMobile ? 14.0 : 35.0;
-    const OFFSCREEN_FAR_Z2 = 55.0;
+    const TARGET_OFFSET_Z1 = isMobile ? 1.3 : 1.2; // Espaçamento 20% mais próximo (+1.2u)
+    const TARGET_OFFSET_Z2 = 2.4;                  // Espaçamento 20% mais próximo (+2.4u)
 
-    extraGearsState.gear1Z = OFFSCREEN_FAR_Z1;
-    extraGearsState.gear2Z = -OFFSCREEN_FAR_Z1;
-    extraGearsState.gear3Z = OFFSCREEN_FAR_Z2;
-    extraGearsState.gear4Z = -OFFSCREEN_FAR_Z2;
+    // Posicionar as engrenagens diretamente no eixo no local exato de destino
+    extraGearsState.gear1Z = TARGET_OFFSET_Z1;
+    extraGearsState.gear2Z = -TARGET_OFFSET_Z1;
+    extraGearsState.gear3Z = TARGET_OFFSET_Z2;
+    extraGearsState.gear4Z = -TARGET_OFFSET_Z2;
 
     if (extraGearsState.gear1) {
-      extraGearsState.gear1.position.z = OFFSCREEN_FAR_Z1;
+      extraGearsState.gear1.position.z = TARGET_OFFSET_Z1;
       extraGearsState.gear1.visible = true;
     }
     if (extraGearsState.gear2) {
-      extraGearsState.gear2.position.z = -OFFSCREEN_FAR_Z1;
+      extraGearsState.gear2.position.z = -TARGET_OFFSET_Z1;
       extraGearsState.gear2.visible = true;
     }
 
     if (!isMobile && extraGearsState.gear3 && extraGearsState.gear4) {
-      extraGearsState.gear3.position.z = OFFSCREEN_FAR_Z2;
+      extraGearsState.gear3.position.z = TARGET_OFFSET_Z2;
       extraGearsState.gear3.visible = true;
-      extraGearsState.gear4.position.z = -OFFSCREEN_FAR_Z2;
+      extraGearsState.gear4.position.z = -TARGET_OFFSET_Z2;
       extraGearsState.gear4.visible = true;
     }
 
-    const TARGET_OFFSET_Z1 = isMobile ? 1.6 : 1.5; // Espaçamento calibrado (+1.5u)
-    const TARGET_OFFSET_Z2 = 3.0;                  // Espaçamento calibrado (+3.0u)
+    // Função para atualizar a intensidade das luzes azuis internas
+    const setInnerLightsIntensity = (intensity) => {
+      [extraGearsState.gear1, extraGearsState.gear2, extraGearsState.gear3, extraGearsState.gear4].forEach(group => {
+        if (group) {
+          group.traverse(child => {
+            if (child.isPointLight) {
+              child.intensity = intensity;
+            }
+          });
+        }
+      });
+    };
+
+    // Resetar corte do plano, progresso do laser e intensidade da luz azul para 0.0 (sem piscar)
+    setInnerLightsIntensity(0.0);
+
+    if (extraGearsState.extraBuildUniforms && extraGearsState.extraBuildUniforms.clipPlane) {
+      const minY = extraGearsState.extraBuildUniforms.uMinY.value;
+      extraGearsState.extraBuildUniforms.clipPlane.constant = minY;
+      extraGearsState.extraBuildUniforms.uBuildProgress.value = 0.0;
+    }
 
     extraGearsState.spinSpeed1 = 0;
     extraGearsState.spinSpeed2 = 0;
@@ -457,58 +508,81 @@ function init() {
     isMainScenePaused = false;
     const tl = gsap.timeline();
 
-    // 1. As engrenagens vem de fora da tela ao longo do eixo central Z e se posicionam estáticas no eixo
-    const animObj = {
-      gear1Z: TARGET_OFFSET_Z1,
-      gear2Z: -TARGET_OFFSET_Z1,
-      duration: isMobile ? 0.7 : 0.9,
-      ease: 'power3.out'
-    };
+    // Fade-in suave da luz azul interna com delay para acender só quando o laser atingir o centro
+    const lightFadeObj = { intensity: 0.0 };
+    tl.to(lightFadeObj, {
+      intensity: 136.0,
+      duration: isMobile ? 1.2 : 1.5,
+      ease: 'power2.out',
+      onUpdate: () => {
+        setInnerLightsIntensity(lightFadeObj.intensity);
+      }
+    }, 0.6);
 
-    if (!isMobile) {
-      animObj.gear3Z = TARGET_OFFSET_Z2;
-      animObj.gear4Z = -TARGET_OFFSET_Z2;
+    // 1. Animação de varredura laser revelando as engrenagens extras de 0% a 100% (de baixo para cima)
+    if (extraGearsState.extraBuildUniforms && extraGearsState.extraBuildUniforms.clipPlane) {
+      const maxY = extraGearsState.extraBuildUniforms.uMaxY.value;
+      const buildDuration = isMobile ? 1.6 : 2.2;
+
+      tl.to(extraGearsState.extraBuildUniforms.clipPlane, {
+        constant: maxY,
+        duration: buildDuration,
+        ease: 'power2.inOut'
+      }, 0);
+
+      tl.to(extraGearsState.extraBuildUniforms.uBuildProgress, {
+        value: 1.0,
+        duration: buildDuration,
+        ease: 'power2.inOut'
+      }, 0);
     }
 
-    tl.to(extraGearsState, animObj, 0);
+    const TARGET_SPIN = isMobile ? 2.0 : 2.5;
 
-    const TARGET_SPIN = isMobile ? 1.4 : 1.6;
-
-    // 2. EFEITO DE ONDA: Apenas APÓS chegarem e encaixarem na posição no eixo, inicia o movimento giratório em onda
+    // 2. EFEITO DE ONDA: Aguarda o preenchimento laser e inicia o giro em onda DA ÚLTIMA ATÉ A PRIMEIRA
     if (isMobile) {
       tl.to(extraGearsState, {
-        spinSpeed1: TARGET_SPIN,
         spinSpeed2: TARGET_SPIN,
         spinSpeedCentral: TARGET_SPIN,
-        duration: 1.0,
+        spinSpeed1: TARGET_SPIN,
+        duration: 1.2,
         ease: 'power2.inOut'
-      }, 0.5);
+      }, 0.8);
     } else {
-      // Onda sequencial cascateando do fundo para a frente APÓS o pouso estático no eixo (t = 0.5s)
-      const ARRIVAL_TIME = 0.5;
-      tl.to(extraGearsState, { spinSpeed4: TARGET_SPIN, duration: 1.0, ease: 'power2.out' }, ARRIVAL_TIME);
-      tl.to(extraGearsState, { spinSpeed2: TARGET_SPIN, duration: 1.0, ease: 'power2.out' }, ARRIVAL_TIME + 0.12);
-      tl.to(extraGearsState, { spinSpeedCentral: TARGET_SPIN, duration: 1.0, ease: 'power2.out' }, ARRIVAL_TIME + 0.24);
-      tl.to(extraGearsState, { spinSpeed1: TARGET_SPIN, duration: 1.0, ease: 'power2.out' }, ARRIVAL_TIME + 0.36);
-      tl.to(extraGearsState, { spinSpeed3: TARGET_SPIN, duration: 1.0, ease: 'power2.out' }, ARRIVAL_TIME + 0.48);
+      const WAVE_START_TIME = 0.9;
+      const STEP = 0.16;
+
+      // Da última (gear4 no fundo) até a primeira (gear3 na frente)
+      tl.to(extraGearsState, { spinSpeed4: TARGET_SPIN, duration: 1.2, ease: 'power2.out' }, WAVE_START_TIME);
+      tl.to(extraGearsState, { spinSpeed2: TARGET_SPIN, duration: 1.2, ease: 'power2.out' }, WAVE_START_TIME + STEP);
+      tl.to(extraGearsState, { spinSpeedCentral: TARGET_SPIN, duration: 1.2, ease: 'power2.out' }, WAVE_START_TIME + STEP * 2);
+      tl.to(extraGearsState, { spinSpeed1: TARGET_SPIN, duration: 1.2, ease: 'power2.out' }, WAVE_START_TIME + STEP * 3);
+      tl.to(extraGearsState, { spinSpeed3: TARGET_SPIN, duration: 1.2, ease: 'power2.out' }, WAVE_START_TIME + STEP * 4);
     }
 
-    // 3. Após o movimento das engrenagens do eixo se estabelecer, dispara a subida cadenciada da dobra
+    // 3. Dispara a transição universal de tijolos para todas as dobras (Serviços, Clientes, Contato, Equipe)
+    const delayBeforeBricks = isMobile ? 1.3 : 1.6;
+
     tl.add(() => {
-      animateFoldSlideUp(targetSectionId);
-    }, isMobile ? 1.5 : 2.3);
+      brickTransition.startTransition(
+        () => {
+          // No momento em que o muro de tijolos cobre 100% da tela:
+          showFoldInstant(targetSectionId);
+        },
+        () => {
+          // Muro de tijolos desfeito totalmente
+        }
+      );
+    }, delayBeforeBricks);
   }
 
-  // Animação 3D de saída sequencial das engrenagens voltando para fora da tela
+  // Animação 3D de saída sequencial das engrenagens e transição de tijolos
   function triggerEquipeGearExitAnimation(activeSectionId = 'team') {
     const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
 
-    const runExitSequence = () => {
-      // 1. Reativar o render da cena 3D principal para a transição de descida
+    const runGearRetreat = () => {
+      // 1. Reativar o render da cena 3D principal (Cena 1)
       isMainScenePaused = false;
-
-      // 2. Disparar a descida da dobra preta
-      animateFoldSlideDown(activeSectionId);
 
       if (callouts && callouts.animateIn) {
         callouts.animateIn(isMobile ? 0.2 : 0.5);
@@ -561,13 +635,21 @@ function init() {
       }, isMobile ? 0.1 : 0.2);
     };
 
-    // 1. Esconder e parar primeiro as engrenagens laterais da dobra preta
-    // 2. Assim que terminarem de recolher, relugar a cena principal e descer a dobra!
-    if (teamGears && teamGears.hide) {
-      teamGears.hide(runExitSequence);
-    } else {
-      runExitSequence();
-    }
+    // 1. Inicia a construção da parede de tijolos imediatamente sobre a dobra ativa (Serviços, Clientes, Contato ou Equipe)
+    brickTransition.startTransition(
+      () => {
+        // 2. Quando o muro de tijolos fecha 100% cobrindo a tela:
+        // Desativa a dobra ativa e as engrenagens laterais e ativa a cena 1
+        hideFoldInstant(activeSectionId);
+        if (teamGears && teamGears.hideInstant) {
+          teamGears.hideInstant();
+        }
+        runGearRetreat();
+      },
+      () => {
+        // 3. Muro desfeito totalmente revelando a Cena 1 pronta
+      }
+    );
   }
 
   // Mapeamento dos IDs dos Callouts de 3D para as Seções das Dobras
