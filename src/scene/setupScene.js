@@ -27,10 +27,10 @@ export function setupScene(canvas) {
     antialias: true,
     alpha: true,
     powerPreference: 'high-performance',
-    precision: isMobileDevice ? 'mediump' : 'highp'
+    precision: 'highp'
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  const maxDPR = isMobileDevice ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 1.5);
+  const maxDPR = isMobileDevice ? Math.min(window.devicePixelRatio, 2.5) : Math.min(window.devicePixelRatio, 3.0);
   renderer.setPixelRatio(maxDPR);
   renderer.shadowMap.enabled = false;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;

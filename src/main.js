@@ -682,7 +682,7 @@ function init() {
     updateResponsiveCamera(camera, scene, floor, shadowFloor);
 
     const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
-    const maxDPR = isMobileDevice ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 1.5);
+    const maxDPR = isMobileDevice ? Math.min(window.devicePixelRatio, 2.5) : Math.min(window.devicePixelRatio, 3.0);
     renderer.setPixelRatio(maxDPR);
   });
 
