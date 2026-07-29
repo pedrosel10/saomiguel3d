@@ -195,7 +195,7 @@ export function setupTeamFold() {
     });
   });
 
-  // 2. Lógica de Drag & Scroll da Galeria de Clientes (Sweep Blue + Progresso 01/08)
+  // 2. Lógica de Drag & Scroll da Galeria de Clientes (Sweep Blue + Progresso 01/08 - Sem Layout Thrashing)
   const clientesCarousel = document.getElementById("clientes-carousel");
   const clientesProgressFill = document.getElementById("clientes-progress-fill");
   const numDisplay = document.querySelector(".current-slide-num");
@@ -204,6 +204,18 @@ export function setupTeamFold() {
     let isDown = false;
     let startX = 0;
     let scrollLeft = 0;
+
+    // Cache permanente dos cards e seletores DOM para zerar reflows síncronos
+    const slides = Array.from(clientesCarousel.querySelectorAll('.swiper-slide.mod--gallery'));
+    const logoCards = slides.map(slide => slide.querySelector('.client-logo-card')).filter(Boolean);
+
+    let cachedMaxScroll = clientesCarousel.scrollWidth - clientesCarousel.clientWidth;
+    let lastSlide = -1;
+    let ticking = false;
+
+    window.addEventListener('resize', () => {
+      cachedMaxScroll = clientesCarousel.scrollWidth - clientesCarousel.clientWidth;
+    }, { passive: true });
 
     clientesCarousel.addEventListener('mousedown', (e) => {
       isDown = true;
@@ -220,10 +232,10 @@ export function setupTeamFold() {
       const x = e.pageX - clientesCarousel.offsetLeft;
       const walk = (x - startX) * 1.8;
       clientesCarousel.scrollLeft = scrollLeft - walk;
-    });
+    }, { passive: true });
 
     const updateClientesProgress = () => {
-      const maxScroll = clientesCarousel.scrollWidth - clientesCarousel.clientWidth;
+      const maxScroll = cachedMaxScroll > 0 ? cachedMaxScroll : (clientesCarousel.scrollWidth - clientesCarousel.clientWidth);
       if (maxScroll <= 0) return;
 
       const percentage = clientesCarousel.scrollLeft / maxScroll;
@@ -232,25 +244,34 @@ export function setupTeamFold() {
       }
 
       const currentSlide = Math.min(8, Math.max(1, Math.round(percentage * 7) + 1));
-      if (numDisplay) {
-        numDisplay.textContent = currentSlide < 10 ? `0${currentSlide}` : `${currentSlide}`;
-      }
+      if (currentSlide !== lastSlide) {
+        lastSlide = currentSlide;
 
-      // Ativar a varredura Sweep Blue no card do logo do cliente visível
-      const slides = clientesCarousel.querySelectorAll('.swiper-slide.mod--gallery');
-      slides.forEach((slide, idx) => {
-        const logoCard = slide.querySelector('.client-logo-card');
-        if (logoCard) {
+        if (numDisplay) {
+          numDisplay.textContent = currentSlide < 10 ? `0${currentSlide}` : `${currentSlide}`;
+        }
+
+        // Ativar a varredura Sweep Blue apenas no card visível sem querySelector repetido
+        logoCards.forEach((logoCard, idx) => {
           if (idx + 1 === currentSlide) {
             logoCard.classList.add('active');
           } else {
             logoCard.classList.remove('active');
           }
-        }
-      });
+        });
+      }
     };
 
-    clientesCarousel.addEventListener("scroll", updateClientesProgress, { passive: true });
+    clientesCarousel.addEventListener("scroll", () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(() => {
+          updateClientesProgress();
+          ticking = false;
+        });
+      }
+    }, { passive: true });
+
     updateClientesProgress();
   }
 

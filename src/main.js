@@ -102,10 +102,17 @@ function init() {
   // Rastreamento da posição do ponteiro do mouse e gestos de touch no mobile
   const mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
 
+  let mouseMoveTicking = false;
   window.addEventListener('mousemove', (event) => {
-    mouse.targetX = (event.clientX / window.innerWidth - 0.5) * 2;
-    mouse.targetY = (event.clientY / window.innerHeight - 0.5) * 2;
-  });
+    if (!mouseMoveTicking) {
+      mouseMoveTicking = true;
+      requestAnimationFrame(() => {
+        mouse.targetX = (event.clientX / window.innerWidth - 0.5) * 2;
+        mouse.targetY = (event.clientY / window.innerHeight - 0.5) * 2;
+        mouseMoveTicking = false;
+      });
+    }
+  }, { passive: true });
 
   // Suporte a gestos Touch (deslizar o dedo altera o parallax e aciona o impulso mecânico)
   let touchStartX = 0;
@@ -121,22 +128,27 @@ function init() {
     }
   }, { passive: true });
 
+  let touchMoveTicking = false;
   window.addEventListener('touchmove', (event) => {
-    if (event.touches.length > 0) {
+    if (event.touches.length > 0 && !touchMoveTicking) {
+      touchMoveTicking = true;
       const touchX = event.touches[0].clientX;
       const touchY = event.touches[0].clientY;
 
-      const deltaY = touchY - touchStartY;
+      requestAnimationFrame(() => {
+        const deltaY = touchY - touchStartY;
 
-      touchStartX = touchX;
-      touchStartY = touchY;
+        touchStartX = touchX;
+        touchStartY = touchY;
 
-      // Parallax 3D sutil ao mover o dedo
-      mouse.targetX = (touchX / window.innerWidth - 0.5) * 2;
-      mouse.targetY = (touchY / window.innerHeight - 0.5) * 2;
+        // Parallax 3D sutil ao mover o dedo
+        mouse.targetX = (touchX / window.innerWidth - 0.5) * 2;
+        mouse.targetY = (touchY / window.innerHeight - 0.5) * 2;
 
-      // Impulso mecânico no eixo pelo scroll de toque no mobile
-      pullState.xVelocity += deltaY * 0.00035;
+        // Impulso mecânico no eixo pelo scroll de toque no mobile
+        pullState.xVelocity += deltaY * 0.00035;
+        touchMoveTicking = false;
+      });
     }
   }, { passive: true });
 
