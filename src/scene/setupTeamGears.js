@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import gsap from 'gsap';
 
 export function setupTeamGears() {
@@ -32,21 +33,37 @@ export function setupTeamGears() {
   renderer.setPixelRatio(maxDPR);
   renderer.localClippingEnabled = true;
 
-  // 4. Iluminação Dedicada (Frontal + Luzes Azuis Internas)
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.95);
+  // 4. Carregar o Mapa de Iluminação de Estúdio HDRI idêntico ao da Cena 1
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  pmrem.compileEquirectangularShader();
+
+  new RGBELoader().load('./obj3D/ferndale_studio_01_1k.hdr', (texture) => {
+    texture.mapping = THREE.EquirectangularReflectionMapping;
+    const envMap = pmrem.fromEquirectangular(texture).texture;
+    scene.environment = envMap;
+    texture.dispose();
+    pmrem.dispose();
+  });
+
+  // 5. Iluminação Fiel à Cena 1 com Ponto Azul Interno
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
   scene.add(ambientLight);
 
-  const frontLight = new THREE.DirectionalLight(0xe0f2fe, 8.5);
+  const frontLight = new THREE.DirectionalLight(0xe0f2fe, 10.0);
   frontLight.position.set(0, 2, 8);
   scene.add(frontLight);
 
+  const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
+  keyLight.position.set(4.0, 8.0, 6.0);
+  scene.add(keyLight);
+
   const createInnerBlueLight = () => {
-    const light = new THREE.PointLight(0x0066ff, 160.0, 3.0, 2.0);
+    const light = new THREE.PointLight(0x0066ff, 350.0, 6.0, 1.5);
     light.position.set(-0.2, -0.1, -0.5);
     return light;
   };
 
-  // 5. Estado Interno do Módulo
+  // 6. Estado Interno do Módulo
   const state = {
     leftGear: null,
     rightGear: null,
@@ -83,16 +100,18 @@ export function setupTeamGears() {
         }
       });
 
-      teamGearMat = new THREE.MeshStandardMaterial({
+      teamGearMat = new THREE.MeshPhysicalMaterial({
         color: new THREE.Color('#051b42'),
         map: origMat ? origMat.map : null,
         normalMap: origMat ? origMat.normalMap : null,
-        normalScale: new THREE.Vector2(1.0, 1.0),
+        normalScale: new THREE.Vector2(2.0, 2.0),
         roughnessMap: origMat ? origMat.roughnessMap : null,
         metalnessMap: origMat ? origMat.metalnessMap : null,
-        metalness: 0.95,
-        roughness: 0.35,
-        envMapIntensity: 1.2,
+        metalness: 0.98,
+        roughness: 0.30,
+        clearcoat: 0.5,
+        clearcoatRoughness: 0.2,
+        envMapIntensity: 1.6,
         clippingPlanes: [teamClipPlane],
         clipShadows: true,
         side: THREE.DoubleSide

@@ -276,7 +276,7 @@ function init() {
       const meshSource = loadedModel.children[0] || loadedModel;
 
       const createInnerBlueLight = () => {
-        const light = new THREE.PointLight(0x0066ff, 136.0, 1.5, 2.0);
+        const light = new THREE.PointLight(0x0088ff, 350.0, 4.0, 1.5);
         light.position.set(-0.2, -0.1, -0.5);
         light.castShadow = false;
         return light;
@@ -295,17 +295,19 @@ function init() {
         uMaxY: { value: maxYVal }
       };
 
-      // Material simplificado e ultra-leve com suporte ao laser holográfico de varredura
-      const extraGearMat = new THREE.MeshStandardMaterial({
+      // Material idêntico ao modelo principal da Cena 1 com suporte ao laser holográfico de varredura
+      const extraGearMat = new THREE.MeshPhysicalMaterial({
         color: new THREE.Color('#051b42'),
         map: gearMaterial.map,
         normalMap: gearMaterial.normalMap,
-        normalScale: new THREE.Vector2(1.0, 1.0),
+        normalScale: new THREE.Vector2(2.0, 2.0),
         roughnessMap: gearMaterial.roughnessMap,
         metalnessMap: gearMaterial.metalnessMap,
-        metalness: 0.95,
-        roughness: 0.35,
-        envMapIntensity: 1.2,
+        metalness: 0.98,
+        roughness: 0.30,
+        clearcoat: 0.5,
+        clearcoatRoughness: 0.2,
+        envMapIntensity: 1.6,
         clippingPlanes: [extraClipPlane],
         clipShadows: true,
         side: THREE.DoubleSide
