@@ -686,7 +686,7 @@ function init() {
 
     renderer.setSize(window.innerWidth, window.innerHeight);
     const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
-    const maxDPR = isMobileDevice ? Math.min(window.devicePixelRatio, 1.8) : Math.min(window.devicePixelRatio, 2.0);
+    const maxDPR = isMobileDevice ? Math.min(window.devicePixelRatio, 1.8) : Math.min(window.devicePixelRatio, 1.5);
     renderer.setPixelRatio(maxDPR);
   });
 
@@ -697,6 +697,11 @@ function init() {
     requestAnimationFrame(animate);
 
     const delta = clock.getDelta();
+
+    // Se a cena principal estiver pausada (ex: navegando dentro de uma dobra), suspende 100% do processamento para economizar GPU/CPU
+    if (isMainScenePaused) {
+      return;
+    }
 
     // Inclinação no eixo Y e X guiadas de forma ultrassuave e sutil pelo movimento (lerp 4.5%)
     mouse.x += (mouse.targetX - mouse.x) * 0.045;

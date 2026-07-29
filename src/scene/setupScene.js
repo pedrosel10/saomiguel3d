@@ -30,10 +30,10 @@ export function setupScene(canvas) {
     precision: isMobileDevice ? 'mediump' : 'highp'
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  const maxDPR = isMobileDevice ? Math.min(window.devicePixelRatio, 1.8) : Math.min(window.devicePixelRatio, 2.0);
+  const maxDPR = isMobileDevice ? Math.min(window.devicePixelRatio, 1.8) : Math.min(window.devicePixelRatio, 1.5);
   renderer.setPixelRatio(maxDPR);
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = isMobileDevice ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap; // Sombra rápida e leve no mobile
+  renderer.shadowMap.type = THREE.PCFShadowMap; // Sombra PCF leve, macia e de altíssimo desempenho (60+ fps)
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.45;
   renderer.outputColorSpace = THREE.SRGBColorSpace;

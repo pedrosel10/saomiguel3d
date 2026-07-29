@@ -28,7 +28,7 @@ export function setupTeamGears() {
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
   const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
-  const maxDPR = isMobileDevice ? Math.min(window.devicePixelRatio, 1.8) : Math.min(window.devicePixelRatio, 2.0);
+  const maxDPR = isMobileDevice ? Math.min(window.devicePixelRatio, 1.8) : Math.min(window.devicePixelRatio, 1.5);
   renderer.setPixelRatio(maxDPR);
   renderer.localClippingEnabled = true;
 
@@ -345,20 +345,20 @@ export function setupTeamGears() {
     const lerpFactor = isMobile ? 0.038 : 0.08;
     state.scrollOffsetProgress += (state.targetScrollOffsetProgress - state.scrollOffsetProgress) * lerpFactor;
 
-    const exitDx = isMobile ? 4.5 : 0.0;
-    const exitDy = isMobile ? 3.0 : 0.0;
+    const exitDx = 0.0; // Não move para as laterais no mobile
+    const exitDy = isMobile ? 0.9 : 0.0; // Abaixa apenas cerca de 30% permanecendo visível na tela
     const offset = isMobile ? state.scrollOffsetProgress : 0.0;
 
     if (state.leftGear) {
       state.leftGear.rotation.z = state.rotLeft;
-      state.leftGear.position.x = state.baseLeftPos.x - exitDx * offset;
+      state.leftGear.position.x = state.baseLeftPos.x;
       state.leftGear.position.y = state.baseLeftPos.y - exitDy * offset;
       state.leftGear.position.z = state.baseLeftPos.z;
     }
 
     if (state.rightGear) {
       state.rightGear.rotation.z = state.rotRight;
-      state.rightGear.position.x = state.baseRightPos.x + exitDx * offset;
+      state.rightGear.position.x = state.baseRightPos.x;
       state.rightGear.position.y = state.baseRightPos.y - exitDy * offset;
       state.rightGear.position.z = state.baseRightPos.z;
     }
