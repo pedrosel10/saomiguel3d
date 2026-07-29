@@ -16,6 +16,11 @@
     rel="stylesheet">
 
   <link rel="stylesheet" href="/src/style.css">
+
+  <!-- Preload de Recursos Críticos -->
+  <link rel="preload" href="./gancho.webp" as="image" type="image/webp">
+  <link rel="preload" href="/equipe/foto_rodrigo.webp" as="image" type="image/webp">
+  <link rel="preload" href="/contato/foto_contato.webp" as="image" type="image/webp">
 </head>
 
 <body>
@@ -32,9 +37,11 @@
       </h2>
     </header>
 
-    <!-- Logo SVG no Canto Inferior Esquerdo (Dobra 1) -->
+    <!-- Logo SVG no Canto Inferior Esquerdo (Dobra 1) com Máscara GSAP -->
     <div class="hero-brand-logo">
-      <img src="./logo_svg_saomiguel.svg" alt="São Miguel Engenharia Logo" class="hero-logo-img" />
+      <div class="hero-logo-mask-wrap">
+        <img src="./logo_svg_saomiguel.svg" alt="São Miguel Engenharia Logo" class="hero-logo-img" />
+      </div>
     </div>
 
     <!-- Título H1 no Canto Inferior Direito -->
@@ -219,7 +226,7 @@
       <div class="fold-body clients-gallery">
 
         <div class="client-showcase">
-          <div class="showcase-photo"><img src="/clientes/fotos_clientes/01_1x.webp" alt="Colline de France" class="showcase-img" loading="lazy" /></div>
+          <div class="showcase-photo"><img src="/clientes/fotos_clientes/01_1x.webp" alt="Colline de France" class="showcase-img" loading="eager" /></div>
           <div class="showcase-bar">
             <img src="/clientes/logos_clientes/01_1_5x.webp" alt="" class="showcase-logo" />
             <span class="showcase-name">Colline de France</span>
@@ -227,7 +234,7 @@
         </div>
 
         <div class="client-showcase">
-          <div class="showcase-photo"><img src="/clientes/fotos_clientes/02_1x.webp" alt="Salão Super Carros" class="showcase-img" loading="lazy" /></div>
+          <div class="showcase-photo"><img src="/clientes/fotos_clientes/02_1x.webp" alt="Salão Super Carros" class="showcase-img" loading="eager" /></div>
           <div class="showcase-bar">
             <img src="/clientes/logos_clientes/02_1_5x.webp" alt="" class="showcase-logo" />
             <span class="showcase-name">Salão Super Carros</span>
@@ -235,7 +242,7 @@
         </div>
 
         <div class="client-showcase">
-          <div class="showcase-photo"><img src="/clientes/fotos_clientes/03_1x.webp" alt="A Roda Canela" class="showcase-img" loading="lazy" /></div>
+          <div class="showcase-photo"><img src="/clientes/fotos_clientes/03_1x.webp" alt="A Roda Canela" class="showcase-img" loading="eager" /></div>
           <div class="showcase-bar">
             <img src="/clientes/logos_clientes/03_1_5x.webp" alt="" class="showcase-logo" />
             <span class="showcase-name">A Roda Canela</span>
@@ -243,7 +250,7 @@
         </div>
 
         <div class="client-showcase">
-          <div class="showcase-photo"><img src="/clientes/fotos_clientes/04_1x.webp" alt="Hotel Valle D'Incanto" class="showcase-img" loading="lazy" /></div>
+          <div class="showcase-photo"><img src="/clientes/fotos_clientes/04_1x.webp" alt="Hotel Valle D'Incanto" class="showcase-img" loading="eager" /></div>
           <div class="showcase-bar">
             <img src="/clientes/logos_clientes/04_1_5x.webp" alt="" class="showcase-logo" />
             <span class="showcase-name">Hotel Valle D'Incanto</span>
@@ -251,7 +258,7 @@
         </div>
 
         <div class="client-showcase">
-          <div class="showcase-photo"><img src="/clientes/fotos_clientes/05_1x.webp" alt="Pizzaria Cara de Mau" class="showcase-img" loading="lazy" /></div>
+          <div class="showcase-photo"><img src="/clientes/fotos_clientes/05_1x.webp" alt="Pizzaria Cara de Mau" class="showcase-img" loading="eager" /></div>
           <div class="showcase-bar">
             <img src="/clientes/logos_clientes/05_1_5x.webp" alt="" class="showcase-logo" />
             <span class="showcase-name">Pizzaria Cara de Mau</span>
@@ -259,7 +266,7 @@
         </div>
 
         <div class="client-showcase">
-          <div class="showcase-photo"><img src="/clientes/fotos_clientes/06_1x.webp" alt="Dauper Indústria e Comércio" class="showcase-img" loading="lazy" /></div>
+          <div class="showcase-photo"><img src="/clientes/fotos_clientes/06_1x.webp" alt="Dauper Indústria e Comércio" class="showcase-img" loading="eager" /></div>
           <div class="showcase-bar">
             <img src="/clientes/logos_clientes/06_1_5x.webp" alt="" class="showcase-logo" />
             <span class="showcase-name">Dauper Indústria</span>
@@ -267,7 +274,7 @@
         </div>
 
         <div class="client-showcase">
-          <div class="showcase-photo"><img src="/clientes/fotos_clientes/07_1x.webp" alt="Hilton Hotels &amp; Resorts" class="showcase-img" loading="lazy" /></div>
+          <div class="showcase-photo"><img src="/clientes/fotos_clientes/07_1x.webp" alt="Hilton Hotels &amp; Resorts" class="showcase-img" loading="eager" /></div>
           <div class="showcase-bar">
             <img src="/clientes/logos_clientes/07_1_5x.webp" alt="" class="showcase-logo" />
             <span class="showcase-name">Hilton Hotels</span>
@@ -275,7 +282,7 @@
         </div>
 
         <div class="client-showcase">
-          <div class="showcase-photo"><img src="/clientes/fotos_clientes/08_1x.webp" alt="Marini Indústria" class="showcase-img" loading="lazy" /></div>
+          <div class="showcase-photo"><img src="/clientes/fotos_clientes/08_1x.webp" alt="Marini Indústria" class="showcase-img" loading="eager" /></div>
           <div class="showcase-bar">
             <img src="/clientes/logos_clientes/08_1_5x.webp" alt="" class="showcase-logo" />
             <span class="showcase-name">Marini Indústria</span>

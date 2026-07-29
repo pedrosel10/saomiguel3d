@@ -720,12 +720,29 @@ kbd {
   user-select: none;
   display: flex;
   align-items: center;
+  overflow: hidden;
+}
+
+.hero-logo-mask-wrap {
+  overflow: hidden;
+  display: block;
 }
 
 .hero-logo-img {
   width: 150px;
   height: auto;
   display: block;
+  will-change: transform, opacity;
+}
+
+.disintegrate-word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.disintegrate-char {
+  display: inline-block;
+  will-change: transform, opacity;
 }
 
 /* Título H1 no Canto Inferior Direito */

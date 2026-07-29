@@ -13,6 +13,7 @@ import { setupCallouts } from './ui/setupCallouts.js';
 import { setupTeamFold, animateFoldSlideUp, animateFoldSlideDown, showFoldInstant, hideFoldInstant } from './ui/setupTeamFold.js';
 import { setupTeamGears } from './scene/setupTeamGears.js';
 import { brickTransition } from './effects/brickTransition.js';
+import { initTextDisintegration, animateDisintegrateHeroText, animateReintegrateHeroText } from './ui/setupTextDisintegration.js';
 
 function init() {
   const canvas = document.getElementById('webgl-canvas');
@@ -438,6 +439,9 @@ function init() {
   function triggerEquipeGearAnimation(targetSectionId = 'team') {
     if (!modelState.mesh) return;
 
+    // Desintegrar textos da tela inicial e recolher a logo em máscara GSAP
+    animateDisintegrateHeroText();
+
     const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
 
     // 1. Desfazer os cards e linhas holográficas imediatamente
@@ -533,6 +537,17 @@ function init() {
         // 2. Muro desfeito totalmente revelando a Cena 1 com a engrenagem e câmera frontal
         extraGearsState.isExiting = true;
 
+        // Reintegrar textos da tela inicial e trazer a logo descendo pela máscara GSAP
+        animateReintegrateHeroText();
+
+        // Desaceleração física 100% fluida: GSAP reduz spinSpeedCentral de 2.5 até 0.0 em 1.6s (0% aceleração inicial e 0% pulo final)
+        gsap.killTweensOf(extraGearsState);
+        gsap.to(extraGearsState, {
+          spinSpeedCentral: 0.0,
+          duration: 1.6,
+          ease: 'power2.out'
+        });
+
         // 3. Mover a câmera da posição Frontal de volta para a posição Isométrica habitual
         const basePos = (camera.userData && camera.userData.basePosition)
           ? camera.userData.basePosition
@@ -555,7 +570,6 @@ function init() {
             }
             extraGearsState.active = false;
             extraGearsState.isExiting = false;
-            extraGearsState.centralRotation = 0;
             if (callouts && callouts.animateIn) {
               callouts.animateIn(0.3);
             }
@@ -623,7 +637,7 @@ function init() {
   function animate() {
     requestAnimationFrame(animate);
 
-    const delta = clock.getDelta();
+    const delta = Math.min(clock.getDelta(), 0.05);
 
     // Se a cena principal estiver pausada (ex: navegando dentro de uma dobra), suspende 100% do processamento para economizar GPU/CPU
     if (isMainScenePaused) {
@@ -686,17 +700,8 @@ function init() {
         extraGearsState.gear4Rotation += delta * extraGearsState.spinSpeed4;
       }
 
-      // Durante a saída, a rotação central desacelera por fricção e assenta suavemente no ângulo neutro (múltiplo de 360°)
-      if (extraGearsState.isExiting) {
-        extraGearsState.spinSpeedCentral *= Math.exp(-4.0 * delta);
-        extraGearsState.centralRotation += delta * extraGearsState.spinSpeedCentral;
-
-        const TWO_PI = Math.PI * 2;
-        const targetRot = Math.round(extraGearsState.centralRotation / TWO_PI) * TWO_PI;
-        extraGearsState.centralRotation += (targetRot - extraGearsState.centralRotation) * Math.min(1.0, 4.0 * delta);
-      } else {
-        extraGearsState.centralRotation += delta * extraGearsState.spinSpeedCentral;
-      }
+      // Rotação da engrenagem central principal
+      extraGearsState.centralRotation += delta * extraGearsState.spinSpeedCentral;
 
       if (extraGearsState.gear1) {
         extraGearsState.gear1.position.set(0, 0, extraGearsState.gear1Z);
@@ -725,9 +730,7 @@ function init() {
 
       // Rotação no eixo Z com suporte à contrarrotação da animação da equipe
       const rollAngle = pullState.xAngle * 1.5;
-      modelState.mesh.rotation.z = extraGearsState.active
-        ? (extraGearsState.centralRotation - rollAngle)
-        : -rollAngle;
+      modelState.mesh.rotation.z = extraGearsState.centralRotation - rollAngle;
 
       // Posição estritamente estática no centro do espaço
       modelState.mesh.position.set(0, 0, 0);
