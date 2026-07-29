@@ -28,8 +28,7 @@ export function setupTeamGears() {
     precision: 'highp'
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
-  const maxDPR = isMobileDevice ? Math.min(window.devicePixelRatio, 1.8) : Math.min(window.devicePixelRatio, 3.0);
+  const maxDPR = Math.min(window.devicePixelRatio || 1, 3.0);
   renderer.setPixelRatio(maxDPR);
   renderer.localClippingEnabled = true;
 
@@ -260,8 +259,7 @@ export function setupTeamGears() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 
-    const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
-    const maxDPR = isMobile ? Math.min(window.devicePixelRatio, 1.8) : Math.min(window.devicePixelRatio, 3.0);
+    const maxDPR = Math.min(window.devicePixelRatio || 1, 3.0);
     renderer.setPixelRatio(maxDPR);
 
     updateGearPositions();
