@@ -30,10 +30,9 @@ export function setupScene(canvas) {
     precision: isMobileDevice ? 'mediump' : 'highp'
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  const maxDPR = isMobileDevice ? Math.min(window.devicePixelRatio, 1.8) : Math.min(window.devicePixelRatio, 1.5);
+  const maxDPR = isMobileDevice ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 1.5);
   renderer.setPixelRatio(maxDPR);
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFShadowMap; // Sombra PCF leve, macia e de altíssimo desempenho (60+ fps)
+  renderer.shadowMap.enabled = false;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.45;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -47,7 +46,7 @@ export function setupScene(canvas) {
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.wrapS = THREE.RepeatWrapping;
     tex.wrapT = THREE.RepeatWrapping;
-    tex.repeat.set(36, 36); // Escala perfeita para os detalhes dos desenhos do projeto ficarem bem nítidos e evidentes
+    tex.repeat.set(36, 36); // Escala perfeita para os detalhes dos desenhos do projeto
     tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
   });
 
@@ -67,21 +66,25 @@ export function setupScene(canvas) {
   const floor = new THREE.Mesh(planeGeo, planeMat);
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = -1.88; // Posicionado com folga limpa abaixo da base da engrenagem 3D
-  floor.receiveShadow = true;
   scene.add(floor);
 
-  // Plano receptor de sombras de alta definição
-  const shadowFloorMat = new THREE.ShadowMaterial({ opacity: 0.35 });
-  const shadowFloor = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), shadowFloorMat);
+  // 6. Sombra Falsa Estática de Contato (Zero custo de GPU/ShadowMap)
+  const fakeShadowTex = createFakeShadowTexture();
+  const fakeShadowMat = new THREE.MeshBasicMaterial({
+    map: fakeShadowTex,
+    transparent: true,
+    opacity: 0.0, // Inicialmente 0.0 para fade-in sincronizado com a animação da engrenagem
+    depthWrite: false
+  });
+  const shadowFloor = new THREE.Mesh(new THREE.PlaneGeometry(6.5, 3.2), fakeShadowMat);
   shadowFloor.rotation.x = -Math.PI / 2;
-  shadowFloor.position.y = -1.87;
-  shadowFloor.receiveShadow = true;
+  shadowFloor.position.set(0, -1.87, 0.2);
   scene.add(shadowFloor);
 
-  // 6. Atualização responsiva da câmera, neblina e chão para mobile
+  // 7. Atualização responsiva da câmera, neblina e chão para mobile
   updateResponsiveCamera(camera, scene, floor, shadowFloor);
 
-  return { scene, camera, renderer, floor, shadowFloor, shadowFloorMat, ISOMETRIC_POS, updateResponsiveCamera };
+  return { scene, camera, renderer, floor, shadowFloor, shadowFloorMat: fakeShadowMat, ISOMETRIC_POS, updateResponsiveCamera };
 }
 
 export function updateResponsiveCamera(camera, scene, floor, shadowFloor) {
@@ -177,5 +180,26 @@ function createNoiseBumpTexture() {
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
   texture.repeat.set(16, 16);
+  return texture;
+}
+
+function createFakeShadowTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  // Gradiente radial ultra-suave para simular a sombra estática de contato (fake blob shadow)
+  const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
+  gradient.addColorStop(0, 'rgba(0, 0, 0, 0.55)');
+  gradient.addColorStop(0.25, 'rgba(0, 0, 0, 0.35)');
+  gradient.addColorStop(0.55, 'rgba(0, 0, 0, 0.12)');
+  gradient.addColorStop(0.85, 'rgba(0, 0, 0, 0.03)');
+  gradient.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 512, 512);
+
+  const texture = new THREE.CanvasTexture(canvas);
   return texture;
 }

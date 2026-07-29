@@ -25,7 +25,7 @@ export function preloadSmoke() {
   // Canvas placeholder (será reposicionado no momento do spawn)
   const canvas = document.createElement('canvas');
   const placeholderW = 600;
-  const placeholderH = 200;
+  const placeholderH = 450;
   canvas.width = placeholderW * window.devicePixelRatio;
   canvas.height = placeholderH * window.devicePixelRatio;
 
@@ -133,15 +133,15 @@ export function spawnSmoke3D(anchorEl) {
   const { canvas, renderer, camera, scene, textures, particles, windX, windY } = _preloaded;
 
   const rect = anchorEl.getBoundingClientRect();
-  const margin = 160;
+  const margin = 180;
   const w = rect.width + margin * 2;
-  const h = 200;
+  const h = 450;
 
-  // Redimensionar canvas e renderer para o tamanho real
+  // Redimensionar canvas e renderer para o tamanho real com margem vertical ampla
   canvas.width = w * window.devicePixelRatio;
   canvas.height = h * window.devicePixelRatio;
   canvas.style.left = (rect.left - margin) + 'px';
-  canvas.style.top = (rect.bottom - h + 40) + 'px';
+  canvas.style.top = (rect.bottom - h + 160) + 'px';
   canvas.style.width = w + 'px';
   canvas.style.height = h + 'px';
 
@@ -159,7 +159,7 @@ export function spawnSmoke3D(anchorEl) {
     const spread = p.isBackground ? rect.width * 1.1 : rect.width * 0.7;
     p.sprite.position.set(
       (Math.random() - 0.5) * spread,
-      -h / 2 + 35,
+      -h / 2 + 160,
       p.isBackground ? -1 : 0
     );
     p.sprite.scale.set(p.baseSize, p.baseSize, 1);

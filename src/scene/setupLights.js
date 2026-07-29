@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 
 export function setupLights(scene, renderer) {
-  // 1. HDRI Environment Map com PMREMGenerator
+  // 1. HDRI Environment Map Original (1K - Fidelidade visual máxima)
   const pmrem = new THREE.PMREMGenerator(renderer);
   pmrem.compileEquirectangularShader();
 
@@ -22,11 +22,11 @@ export function setupLights(scene, renderer) {
   const hemiLight = new THREE.HemisphereLight(0xeff6ff, 0x475569, 0.6);
   scene.add(hemiLight);
 
-  // 4. Key Light com projeção de sombra ativada (baixa qualidade e alta performance para a engrenagem e seus clones)
+  // 4. Key Light com projeção de sombra ativada
   const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
   keyLight.position.set(4.0, 8.0, 6.0);
   const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
-  keyLight.castShadow = true;
+  keyLight.castShadow = false;
   const shadowSize = isMobileDevice ? 256 : 512; // Sombra leve em baixa resolução para os clones
   keyLight.shadow.mapSize.set(shadowSize, shadowSize);
   keyLight.shadow.bias = -0.0008;

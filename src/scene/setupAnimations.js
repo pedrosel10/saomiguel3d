@@ -53,9 +53,14 @@ export function setupAnimations(camera, lights, controls, buildUniforms, shadowF
     }, 0);
   }
 
-  // Opacidade da sombra no chão
+  // Opacidade da sombra no chão com fade-in sincronizado à construção da engrenagem 3D
   if (shadowFloorMat) {
-    shadowFloorMat.opacity = 0.32;
+    shadowFloorMat.opacity = 0.0;
+    introTimeline.to(shadowFloorMat, {
+      opacity: 0.65,
+      duration: 2.2,
+      ease: 'power2.inOut'
+    }, 0.2);
   }
 
   // Acendimento progressivo da luz azul interna (de 0 para 136)

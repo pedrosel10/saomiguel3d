@@ -49,7 +49,6 @@ function init() {
   let sparksEffect = null;
 
   let coreUniformsRef = null;
-  let skeletonUniformsRef = null;
   let callouts = null;
 
   let isMainScenePaused = false;
@@ -78,14 +77,7 @@ function init() {
     spinSpeedCentral: 0
   };
 
-  // Objeto de Raycasting e estado de hover para a revelação do Raio-X do Esqueleto
-  const hoverRaycaster = new THREE.Raycaster();
-  const mouseNDC = new THREE.Vector2();
-  const hoverState = {
-    isHovered: false,
-    progress: 0,
-    point: new THREE.Vector3()
-  };
+
 
   // Estado de deslocamento progressivo de puxar no eixo X pelo scroll
   const pullState = {
@@ -160,11 +152,7 @@ function init() {
     }
   });
 
-  // Listener para sincronizar a inclinação lateral 3D de forma extremamente suave quando o usuário desliza o nível no mobile
-  window.addEventListener('levelGaugeDrag', (event) => {
-    const { normalizedTarget } = event.detail;
-    mouse.targetX = normalizedTarget;
-  });
+
 
   // 4. Configurar Interface do Usuário (UI) e Dobra da Equipe
   const ui = setupUI({
@@ -184,10 +172,9 @@ function init() {
     (percent) => {
       ui.updateProgress(percent);
     },
-    (loadedModel, metadata, gearMaterial, buildUniforms, innerCoreUniforms, skeletonUniforms) => {
+    (loadedModel, metadata, gearMaterial, buildUniforms, innerCoreUniforms) => {
       modelState.mesh = loadedModel;
       coreUniformsRef = innerCoreUniforms;
-      skeletonUniformsRef = skeletonUniforms;
 
       // Inicializar Sistema de Callout Diagrams saindo de trás do centro da engrenagem
       callouts = setupCallouts(scene, camera, renderer, modelState);
@@ -378,7 +365,7 @@ function init() {
         clone.traverse(child => {
           if (child.isMesh) {
             child.material = extraGearMat;
-            child.castShadow = true; // Sombra ativada nos clones (baixa qualidade e otimizada)
+            child.castShadow = false;
             child.receiveShadow = false;
           }
         });
@@ -452,9 +439,7 @@ function init() {
 
     const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
 
-    // Desativar e aplicar fade-out imediato nas linhas de hover do Raio-X da engrenagem
-    hoverState.isHovered = false;
-    gsap.to(hoverState, { progress: 0, duration: 0.4, ease: 'power2.out' });
+
 
     // Desfazer os cards e linhas holográficas em animação reversa antes de subir a dobra
     if (callouts && callouts.animateOut) {
@@ -696,9 +681,8 @@ function init() {
   window.addEventListener('resize', () => {
     updateResponsiveCamera(camera, scene, floor, shadowFloor);
 
-    renderer.setSize(window.innerWidth, window.innerHeight);
     const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
-    const maxDPR = isMobileDevice ? Math.min(window.devicePixelRatio, 1.8) : Math.min(window.devicePixelRatio, 1.5);
+    const maxDPR = isMobileDevice ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 1.5);
     renderer.setPixelRatio(maxDPR);
   });
 
@@ -814,10 +798,7 @@ function init() {
       coreUniformsRef.uCoreRotationX.value = pullState.xAngle;
     }
 
-    // Sincronizar em tempo real o indicador do Nível Minimalista com a inclinação 3D no mobile
-    if (ui && ui.updateLevelGauge) {
-      ui.updateLevelGauge(mouse.x);
-    }
+
 
     // Atualizar partículas de faísca (Apenas quando a cena 3D principal não estiver pausada)
     if (sparksEffect && !isMainScenePaused) {

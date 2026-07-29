@@ -28,7 +28,7 @@ export function setupTeamGears() {
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
   const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
-  const maxDPR = isMobileDevice ? Math.min(window.devicePixelRatio, 1.8) : Math.min(window.devicePixelRatio, 1.5);
+  const maxDPR = isMobileDevice ? Math.min(window.devicePixelRatio, 2.0) : Math.min(window.devicePixelRatio, 3.0);
   renderer.setPixelRatio(maxDPR);
   renderer.localClippingEnabled = true;
 
@@ -241,9 +241,9 @@ export function setupTeamGears() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    const dpr = window.innerWidth <= 768 ? 1.85 : 2.0;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, dpr));
+    const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+    const maxDPR = isMobile ? Math.min(window.devicePixelRatio, 2.0) : Math.min(window.devicePixelRatio, 3.0);
+    renderer.setPixelRatio(maxDPR);
 
     updateGearPositions();
   });

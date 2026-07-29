@@ -682,75 +682,8 @@ kbd {
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.95);
 }
 
-/* Widget de Nível Ultra-Minimalista (Canto Inferior Esquerdo - Mobile) */
 .mobile-level-hud {
-  position: fixed;
-  bottom: 24px;
-  left: 24px;
-  z-index: 25;
-  display: flex;
-  align-items: center;
-  pointer-events: auto;
-  user-select: none;
-  touch-action: none;
-}
-
-@media (min-width: 769px) {
-  .mobile-level-hud {
-    display: none !important;
-    /* Visível estritamente no mobile */
-  }
-}
-
-.level-track-wrapper {
-  position: relative;
-  width: 85px;
-  height: 16px;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  touch-action: none;
-}
-
-.level-track-bar {
-  position: relative;
-  width: 100%;
-  height: 1px;
-  /* Linha ultrafina de 1px */
-  background: rgba(51, 65, 85, 0.45);
-  /* Cinza escuro discreto */
-  border-radius: 1px;
-  overflow: visible;
-}
-
-.level-center-mark {
-  display: none;
-  /* Removido para manter 100% minimalista: só o círculo e a barrinha */
-}
-
-.level-bubble-handle {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 7px;
-  /* Pequeno círculo minimalista */
-  height: 7px;
-  background: #334155;
-  /* Tom cinza escuro */
-  border: none;
-  /* Sem borda */
-  box-shadow: none;
-  /* Sem sombra */
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition: left 0.40s cubic-bezier(0.16, 1, 0.3, 1);
-  /* Movimento suave com inércia */
-  cursor: grab;
-}
-
-.level-bubble-handle:active {
-  cursor: grabbing;
-  transform: translate(-50%, -50%) scale(1.3);
+  display: none !important;
 }
 
 /* Descrição H2 no Canto Superior Esquerdo */
@@ -773,6 +706,24 @@ kbd {
   letter-spacing: -0.1px;
   margin: 0;
   line-height: 1.55;
+}
+
+/* Logo SVG no Canto Inferior Esquerdo da Dobra 1 */
+.hero-brand-logo {
+  position: fixed;
+  bottom: 60px;
+  left: 60px;
+  z-index: 20;
+  pointer-events: none;
+  user-select: none;
+  display: flex;
+  align-items: center;
+}
+
+.hero-logo-img {
+  width: 150px;
+  height: auto;
+  display: block;
 }
 
 /* Título H1 no Canto Inferior Direito */
@@ -838,6 +789,15 @@ kbd {
   .footer-description {
     bottom: 36px;
     right: 28px;
+  }
+
+  .hero-brand-logo {
+    bottom: 36px;
+    left: 24px;
+  }
+
+  .hero-logo-img {
+    width: 105px;
   }
 
   .crane-hook {

@@ -195,13 +195,13 @@ class BrickTransition {
       const drawW = b.width + 1.0;
       const drawH = b.height + 1.0;
 
-      // Tijolo escuro de alvenaria técnica com encaixe perfeito sem fresta
-      this.ctx.fillStyle = '#080808';
+      // Tijolo azul com encaixe perfeito sem fresta
+      this.ctx.fillStyle = '#0055ff';
       this.ctx.fillRect(b.x, b.y, drawW, drawH);
 
-      // Linha sutil de contorno azul do tijolo
-      this.ctx.strokeStyle = 'rgba(0, 102, 255, 0.22)';
-      this.ctx.lineWidth = 1;
+      // Borda do tijolo azul
+      this.ctx.strokeStyle = '#0033b3';
+      this.ctx.lineWidth = 1.5;
       this.ctx.strokeRect(b.x, b.y, b.width, b.height);
 
       this.ctx.restore();
