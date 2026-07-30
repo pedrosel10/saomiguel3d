@@ -140,10 +140,8 @@ export function setupTeamFold() {
     };
   };
 
-  const contatoVideo = document.querySelector('#contato video');
-  if (contatoVideo) {
-    contatoVideo.pause();
-  }
+  const foldVideos = document.querySelectorAll('.fold-section video');
+  foldVideos.forEach(v => v.pause());
 
   const teamSection = document.querySelector('[data-observ="team"]');
   const servicosSection = document.querySelector('[data-observ="servicos"]');
@@ -156,13 +154,14 @@ export function setupTeamFold() {
   const triggerContatoReveal = initSectionReveal(contatoSection);
 
   triggerRevealFn = (sectionId = 'team') => {
-    if (contatoVideo) {
-      if (sectionId === 'contato') {
-        contatoVideo.play().catch(() => {});
+    foldVideos.forEach(v => {
+      const parentSection = v.closest('.fold-section');
+      if (parentSection && parentSection.id === sectionId) {
+        v.play().catch(() => {});
       } else {
-        contatoVideo.pause();
+        v.pause();
       }
-    }
+    });
 
     if (sectionId === 'servicos') {
       triggerServicosReveal();
@@ -226,9 +225,7 @@ export function setupTeamFold() {
   closeBtns.forEach(btn => {
     btn.addEventListener("click", () => {
       const sectionId = btn.getAttribute("data-close") || "team";
-      if (contatoVideo && sectionId === 'contato') {
-        contatoVideo.pause();
-      }
+      foldVideos.forEach(v => v.pause());
       const wrapper = btn.closest('.crane-close-wrapper');
       if (wrapper) {
         gsap.to(wrapper, {
