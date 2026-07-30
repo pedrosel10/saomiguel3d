@@ -283,7 +283,15 @@ export function setupTeamGears() {
       return;
     }
 
-    const maxScroll = Math.max(1, activeSection.scrollHeight - activeSection.clientHeight);
+    const scrollableDistance = activeSection.scrollHeight - activeSection.clientHeight;
+
+    // Se a dobra couber na tela (sem scroll relevante), as engrenagens devem permanecer visíveis
+    if (scrollableDistance <= 20) {
+      state.targetScrollOffsetProgress = 0.0;
+      return;
+    }
+
+    const maxScroll = scrollableDistance;
     const currentScroll = activeSection.scrollTop;
 
     // Quando chega no limite inferior do scroll da dobra, as engrenagens saem da tela
