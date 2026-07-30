@@ -14,10 +14,30 @@ function animateCraneHookIn() {
   }
 }
 
+function showGlobalBgVideo() {
+  const globalBgVideo = document.getElementById('global-bg-video');
+  if (globalBgVideo) {
+    globalBgVideo.classList.add('active');
+    const v = globalBgVideo.querySelector('video');
+    if (v) v.play().catch(() => {});
+  }
+}
+
+function hideGlobalBgVideo() {
+  const globalBgVideo = document.getElementById('global-bg-video');
+  if (globalBgVideo) {
+    globalBgVideo.classList.remove('active');
+    const v = globalBgVideo.querySelector('video');
+    if (v) v.pause();
+  }
+}
+
 export function animateFoldSlideUp(sectionId = 'team') {
   currentActiveSectionId = sectionId;
   const foldSection = document.getElementById(sectionId);
   if (!foldSection) return;
+
+  showGlobalBgVideo();
 
   const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
 
@@ -52,6 +72,8 @@ export function showFoldInstant(sectionId = 'team') {
   const foldSection = document.getElementById(sectionId);
   if (!foldSection) return;
 
+  showGlobalBgVideo();
+
   foldSection.scrollTop = 0;
   gsap.set(foldSection, {
     y: '0%',
@@ -64,6 +86,8 @@ export function showFoldInstant(sectionId = 'team') {
 }
 
 export function hideFoldInstant(sectionId) {
+  hideGlobalBgVideo();
+
   const wrapper = document.getElementById('global-crane-close');
   if (wrapper) gsap.set(wrapper, { y: '-130%' });
 
@@ -90,7 +114,10 @@ export function animateFoldSlideDown(sectionId) {
       y: '100%',
       duration: isMobile ? 0.75 : 0.95,
       ease: 'power3.inOut',
-      force3D: true
+      force3D: true,
+      onComplete: () => {
+        hideGlobalBgVideo();
+      }
     });
   });
 }
@@ -140,8 +167,6 @@ export function setupTeamFold() {
     };
   };
 
-  const foldVideos = document.querySelectorAll('.fold-section video');
-  foldVideos.forEach(v => v.pause());
 
   const teamSection = document.querySelector('[data-observ="team"]');
   const servicosSection = document.querySelector('[data-observ="servicos"]');
@@ -154,14 +179,7 @@ export function setupTeamFold() {
   const triggerContatoReveal = initSectionReveal(contatoSection);
 
   triggerRevealFn = (sectionId = 'team') => {
-    foldVideos.forEach(v => {
-      const parentSection = v.closest('.fold-section');
-      if (parentSection && parentSection.id === sectionId) {
-        v.play().catch(() => {});
-      } else {
-        v.pause();
-      }
-    });
+    showGlobalBgVideo();
 
     if (sectionId === 'servicos') {
       triggerServicosReveal();
@@ -225,7 +243,6 @@ export function setupTeamFold() {
   closeBtns.forEach(btn => {
     btn.addEventListener("click", () => {
       const sectionId = btn.getAttribute("data-close") || "team";
-      foldVideos.forEach(v => v.pause());
       const wrapper = btn.closest('.crane-close-wrapper');
       if (wrapper) {
         gsap.to(wrapper, {

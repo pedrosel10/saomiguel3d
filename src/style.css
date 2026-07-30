@@ -875,7 +875,7 @@ kbd {
   height: 100vh;
   z-index: 200;
   padding: 0 20px;
-  background-color: #050508;
+  background-color: transparent;
   background-image:
     radial-gradient(ellipse at 30% 0%, rgba(26, 43, 194, 0.06) 0%, transparent 50%),
     radial-gradient(ellipse at 70% 100%, rgba(0, 60, 180, 0.04) 0%, transparent 50%);
@@ -1240,20 +1240,31 @@ kbd {
   color: rgba(255, 255, 255, 0.7);
 }
 
-/* --- CONTACT --- */
+/* --- GLOBAL BG VIDEO --- */
 .bg-video {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 190;
   pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  overflow: hidden;
+}
+
+.bg-video.active {
+  opacity: 1;
+  visibility: visible;
 }
 
 .bg-video video {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   object-fit: cover;
 }
 
@@ -1261,10 +1272,11 @@ kbd {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   background: rgba(5, 5, 8, 0.88);
   backdrop-filter: blur(6px);
+  z-index: 1;
 }
 
 .z-front {
