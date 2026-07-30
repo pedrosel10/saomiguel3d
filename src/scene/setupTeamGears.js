@@ -28,7 +28,9 @@ export function setupTeamGears() {
     precision: 'highp'
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  const maxDPR = Math.min(window.devicePixelRatio || 1, 2.5);
+  const isMobileInitial = window.innerWidth <= 768 || ('ontouchstart' in window);
+  // Forçar DPR maior no mobile para atuar como supersampling e remover serrilhado
+  const maxDPR = isMobileInitial ? 2.5 : Math.min(window.devicePixelRatio || 1, 2.5);
   renderer.setPixelRatio(maxDPR);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.45;
@@ -262,7 +264,8 @@ export function setupTeamGears() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 
-    const maxDPR = Math.min(window.devicePixelRatio || 1, 2.5);
+    const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+    const maxDPR = isMobile ? 2.5 : Math.min(window.devicePixelRatio || 1, 2.5);
     renderer.setPixelRatio(maxDPR);
 
     updateGearPositions();
