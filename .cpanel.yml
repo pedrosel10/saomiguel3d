@@ -1,10 +1,6 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=$HOME/public_html
-    - /bin/mkdir -p $DEPLOYPATH
-    - /bin/cp -r -f dist/* $DEPLOYPATH/
-    - /bin/rm -rf $DEPLOYPATH/src
     - export SUBPATH=$HOME/public_html/saomiguel3d
     - /bin/mkdir -p $SUBPATH
     - /bin/cp -r -f dist/* $SUBPATH/
