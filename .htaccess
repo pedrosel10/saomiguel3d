@@ -1,0 +1,8 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Se o arquivo ou pasta existir dentro de dist/, redireciona internamente para dist/
+  RewriteCond %{REQUEST_URI} !^/dist/
+  RewriteRule ^(.*)$ dist/$1 [L]
+</IfModule>
