@@ -149,9 +149,14 @@ export function setupTeamFold() {
     const subLine = sectionEl.querySelector('.fold-subheading__line');
     const subText = sectionEl.querySelector('.fold-subheading__text');
     const headings = sectionEl.querySelectorAll('.fold-title, .service-title');
-    const paragraphs = sectionEl.querySelectorAll('.fold-p, .service-list li, .contact-link');
+    const paragraphs = sectionEl.querySelectorAll('.fold-p, .service-list li');
     const images = sectionEl.querySelectorAll('.editorial-img');
-    const cards = sectionEl.querySelectorAll('.stat-block, .service-block, .social-btn, .tab-pill');
+    const cards = sectionEl.querySelectorAll('.stat-block, .service-block, .social-btn, .tab-pill, .contact-card, .contact-separator');
+
+    // Galeria editorial de clientes
+    const featuredCards = sectionEl.querySelectorAll('.client-featured');
+    const compactCards = sectionEl.querySelectorAll('.client-compact');
+    const logoCards = sectionEl.querySelectorAll('.client-logo-card');
 
     // Configuração Inicial (antes de aparecer)
     if (subLine) gsap.set(subLine, { width: 0 });
@@ -160,6 +165,8 @@ export function setupTeamFold() {
     if (paragraphs.length) gsap.set(paragraphs, { opacity: 0, y: 15 });
     if (images.length) gsap.set(images, { opacity: 0, scale: 1.03 });
     if (cards.length) gsap.set(cards, { opacity: 0, y: 20 });
+    if (featuredCards.length) gsap.set(featuredCards, { opacity: 0, y: 40 });
+    if (compactCards.length) gsap.set(compactCards, { opacity: 0, y: 30, scale: 0.96 });
 
     return () => {
       const tl = gsap.timeline({ delay: 0.1 });
@@ -183,6 +190,30 @@ export function setupTeamFold() {
       
       if (cards.length) {
         tl.to(cards, { opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: 'back.out(1.2)' }, 0.4);
+      }
+
+      // Galeria editorial de clientes: stagger reveal
+      if (featuredCards.length) {
+        tl.to(featuredCards, {
+          opacity: 1, y: 0, duration: 0.9, stagger: 0.2, ease: 'power3.out'
+        }, 0.3);
+      }
+
+      if (compactCards.length) {
+        tl.to(compactCards, {
+          opacity: 1, y: 0, scale: 1, duration: 0.7, stagger: 0.08, ease: 'power2.out'
+        }, featuredCards.length ? 0.7 : 0.3);
+      }
+
+      // Sweep animation em TODOS os logo badges ao entrar na dobra
+      if (logoCards.length) {
+        // Reset: remove active para re-triggerar a animação
+        logoCards.forEach(card => card.classList.remove('active'));
+
+        // Featured logos primeiro, depois compact logos com delay crescente
+        logoCards.forEach((card, i) => {
+          setTimeout(() => card.classList.add('active'), 700 + i * 200);
+        });
       }
     };
   };
@@ -256,8 +287,7 @@ export function setupTeamFold() {
     });
   });
 
-  // Galeria de Clientes: scroll-driven 3D stacking cards
-  initClientesStackEffect();
+
 
   // 3. Botões Fechar / Voltar de todas as dobras com animação de subida do gancho
   const closeBtns = document.querySelectorAll(".fold-close-btn");
@@ -281,97 +311,3 @@ export function setupTeamFold() {
   });
 }
 
-/**
- * Scroll-driven 3D Stacking Effect para a Galeria de Clientes.
- * Cards usam position:sticky e animam da direita com rotação 3D
- * conforme o scroll interno da fold-section.
- */
-function initClientesStackEffect() {
-  const section = document.getElementById('clientes');
-  if (!section) return;
-
-  const gallery = section.querySelector('.clients-gallery');
-  if (!gallery) return;
-
-  const cards = gallery.querySelectorAll('.client-showcase');
-  if (!cards.length) return;
-
-  const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
-
-  // Parâmetros do efeito
-  const CARD_SCROLL_DISTANCE = isMobile ? 140 : 180; // px de scroll por card
-  const STICKY_TOP_BASE = isMobile ? 70 : 100;        // px do topo para o primeiro card
-  const STICKY_TOP_INCREMENT = isMobile ? 8 : 10;     // px de offset vertical entre cards no stack
-
-  // Configurar sticky positions e margins de scroll
-  cards.forEach((card, i) => {
-    card.style.position = 'sticky';
-    card.style.top = `${STICKY_TOP_BASE + i * STICKY_TOP_INCREMENT}px`;
-    card.style.zIndex = i + 1;
-    card.style.transformOrigin = 'left center';
-
-    // Margin bottom cria espaço de scroll entre os cards e para o último card revelar 100%
-    card.style.marginBottom = `${CARD_SCROLL_DISTANCE}px`;
-
-    // Estado inicial: primeiro card visível, demais ocultos à direita
-    if (i === 0) {
-      card.style.opacity = '1';
-      card.style.transform = 'perspective(1200px) translateX(0%) rotateY(0deg) scale(1)';
-    } else {
-      card.style.opacity = '0';
-      card.style.transform = 'perspective(1200px) translateX(80%) rotateY(-18deg) scale(0.9)';
-    }
-  });
-
-  // Handler de scroll otimizado com requestAnimationFrame
-  let ticking = false;
-
-  function updateCardsOnScroll() {
-    const scrollTop = section.scrollTop;
-
-    cards.forEach((card, i) => {
-      // Primeiro card sempre visível
-      if (i === 0) {
-        card.style.opacity = '1';
-        card.style.transform = 'perspective(1200px) translateX(0%) rotateY(0deg) scale(1)';
-        return;
-      }
-
-      // Calcular progresso de revelação deste card
-      const triggerStart = (i - 1) * CARD_SCROLL_DISTANCE + CARD_SCROLL_DISTANCE * 0.3;
-      const triggerEnd = triggerStart + CARD_SCROLL_DISTANCE;
-      const rawProgress = (scrollTop - triggerStart) / (triggerEnd - triggerStart);
-      const progress = Math.min(Math.max(rawProgress, 0), 1);
-
-      // Ease out cubic para desaceleração natural
-      const eased = 1 - Math.pow(1 - progress, 3);
-
-      // Transformações 3D: da direita com rotação até a posição de repouso
-      const translateX = (1 - eased) * 80;    // 80% → 0%
-      const rotateY = (1 - eased) * -18;       // -18deg → 0deg
-      const scale = 0.9 + eased * 0.1;         // 0.9 → 1.0
-      const opacity = eased;                    // 0 → 1
-
-      card.style.transform = `perspective(1200px) translateX(${translateX}%) rotateY(${rotateY}deg) scale(${scale})`;
-      card.style.opacity = opacity;
-    });
-
-    ticking = false;
-  }
-
-  section.addEventListener('scroll', () => {
-    if (!ticking) {
-      ticking = true;
-      requestAnimationFrame(updateCardsOnScroll);
-    }
-  }, { passive: true });
-
-  // Listener para re-inicializar quando a dobra abre (scroll reseta para 0)
-  window.addEventListener('foldSlideUpComplete', (event) => {
-    const data = event.detail;
-    if (data && data.id === 'clientes') {
-      section.scrollTop = 0;
-      requestAnimationFrame(updateCardsOnScroll);
-    }
-  });
-}
