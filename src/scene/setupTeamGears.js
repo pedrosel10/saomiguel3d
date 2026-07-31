@@ -115,7 +115,8 @@ export function setupTeamGears() {
         envMapIntensity: 1.6,
         clippingPlanes: [teamClipPlane],
         clipShadows: true,
-        side: THREE.DoubleSide
+        side: THREE.DoubleSide,
+        dithering: true
       });
 
       teamGearMat.onBeforeCompile = (shader) => {

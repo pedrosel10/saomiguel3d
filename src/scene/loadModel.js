@@ -66,7 +66,8 @@ export function loadModel(scene, onProgress, onLoad, onError, renderer) {
     clearcoatRoughness: 0.2,
     envMapIntensity: 1.6, // Evita que a iluminação de estúdio esbanje/clareie o metal
     side: THREE.DoubleSide,
-    shadowSide: THREE.DoubleSide
+    shadowSide: THREE.DoubleSide,
+    dithering: true,
   });
 
   loader.load(

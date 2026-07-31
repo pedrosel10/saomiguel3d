@@ -63,7 +63,8 @@ export function setupScene(canvas) {
     metalness: 0.0,
     envMapIntensity: 1.2,
     transparent: true,
-    opacity: 1.0,          // 100% de opacidade para contraste e evidência total do projeto no chão
+    opacity: 1.0,
+    dithering: true,       // Suaviza a amostragem de cores da GPU e elimina qualquer efeito de pixelado
   });
 
   const floor = new THREE.Mesh(planeGeo, planeMat);
