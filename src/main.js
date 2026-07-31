@@ -14,6 +14,7 @@ import { setupTeamFold, animateFoldSlideUp, animateFoldSlideDown, showFoldInstan
 import { setupTeamGears } from './scene/setupTeamGears.js';
 import { brickTransition } from './effects/brickTransition.js';
 import { initTextDisintegration, animateDisintegrateHeroText, animateReintegrateHeroText } from './ui/setupTextDisintegration.js';
+import { setupScrollJourney } from './ui/scrollJourney.js';
 
 function init() {
   const canvas = document.getElementById('webgl-canvas');
@@ -166,6 +167,16 @@ function init() {
   });
 
   setupTeamFold();
+
+  // 4b. Inicializar Navegação Guiada ("Jornada por Scroll")
+  setupScrollJourney({
+    onStartJourney: (targetSectionId = 'team') => {
+      triggerEquipeGearAnimation(targetSectionId);
+    },
+    onReturnToHero: (activeSectionId = 'contato') => {
+      triggerEquipeGearExitAnimation(activeSectionId);
+    }
+  });
 
   // 5. Carregar Modelo 3D (smlogo3d.glb)
   loadModel(
@@ -575,6 +586,8 @@ function init() {
             if (callouts && callouts.animateIn) {
               callouts.animateIn(0.3);
             }
+            // Disparar evento de conclusão do fechamento da dobra
+            window.dispatchEvent(new CustomEvent('foldClosed', { detail: { id: activeSectionId } }));
           }
         });
 

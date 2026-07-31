@@ -965,12 +965,12 @@ kbd {
   width: 100%;
   max-width: 620px;
   margin: 0 auto;
-  padding: 80px 0 120px 0;
+  padding: 100px 0 120px 0;
 }
 
 /* --- HEADER PADRONIZADO --- */
 .fold-header {
-  margin-bottom: 48px;
+  margin-bottom: 64px;
 }
 
 .fold-subheading {
@@ -998,18 +998,18 @@ kbd {
 
 .fold-title {
   font-family: 'Inria Serif', serif;
-  font-size: 34px;
-  line-height: 1.3;
+  font-size: 42px;
+  line-height: 1.2;
   font-weight: 300;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.5px;
   color: #ffffff;
   margin: 0;
 }
 
 .fold-p {
   font-size: 15px;
-  line-height: 1.85;
-  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.65);
   margin: 0 0 20px 0;
 }
 
@@ -1018,8 +1018,8 @@ kbd {
 }
 
 .fold-p.mod--subtitle {
-  font-size: 17px;
-  color: rgba(255, 255, 255, 0.4);
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.45);
   margin-top: 8px;
 }
 
@@ -1035,7 +1035,7 @@ kbd {
   width: 100%;
   height: auto;
   display: block;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 3 / 2;
   object-fit: cover;
   transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -1057,26 +1057,34 @@ kbd {
 
 .stat-block {
   flex: 1;
-  padding: 28px 24px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
+  padding: 32px 0;
+  border: none;
+  border-radius: 0;
   text-align: center;
+}
+
+.stat-accent-line {
+  width: 28px;
+  height: 2px;
+  background: #1a2bc2;
+  box-shadow: 0 0 8px rgba(26, 43, 194, 0.5);
+  margin: 0 auto 20px auto;
 }
 
 .stat-number {
   font-family: 'Inria Serif', serif;
-  font-size: 48px;
+  font-size: 64px;
   font-weight: 700;
   line-height: 1;
   color: #ffffff;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .stat-label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.4);
-  letter-spacing: 0.3px;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.5px;
 }
 
 /* --- TABS PILLS (Serviços) --- */
@@ -1088,7 +1096,7 @@ kbd {
 
 .tab-pill {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   color: rgba(255, 255, 255, 0.45);
   font-family: 'Inter', sans-serif;
   font-size: 12px;
@@ -1103,12 +1111,12 @@ kbd {
 
 .tab-pill:hover {
   color: rgba(255, 255, 255, 0.8);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .tab-pill.active {
-  background: rgba(26, 43, 194, 0.15);
-  border-color: rgba(26, 43, 194, 0.4);
+  background: rgba(26, 43, 194, 0.20);
+  border-color: rgba(26, 43, 194, 0.5);
   color: #ffffff;
 }
 
@@ -1123,20 +1131,28 @@ kbd {
 /* --- SERVICE BLOCKS --- */
 .service-block {
   margin-bottom: 16px;
+  padding-left: 0;
+  border-left: 2px solid transparent;
+  transition: border-color 0.3s ease, padding-left 0.3s ease;
+}
+
+.service-block:hover {
+  border-left-color: #1a2bc2;
+  padding-left: 16px;
 }
 
 .service-overtitle {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 1.5px;
-  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.4);
   margin-bottom: 8px;
   margin-top: 24px;
 }
 
 .service-title {
   font-family: 'Inria Serif', serif;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 300;
   color: #ffffff;
   margin: 0 0 16px 0;
@@ -1154,7 +1170,7 @@ kbd {
   margin-bottom: 8px;
   font-size: 14px;
   line-height: 1.7;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .service-list li::before {
@@ -1173,27 +1189,30 @@ kbd {
 .section-divider {
   width: 100%;
   height: 1px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.08);
   margin: 40px 0;
 }
 
-/* --- CLIENTS GALLERY --- */
+/* --- CLIENTS GALLERY (Sticky 3D Stacking on Scroll) --- */
 .clients-gallery {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 0;
 }
 
 .client-showcase {
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  transition: border-color 0.3s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+  transform-style: preserve-3d;
+  background: rgba(8, 8, 12, 0.98);
+  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3), 0 8px 32px rgba(0, 0, 0, 0.2);
+  transition: border-color 0.3s ease;
 }
 
 .client-showcase:hover {
   border-color: rgba(26, 43, 194, 0.3);
-  transform: translateY(-2px);
 }
 
 .showcase-photo {
@@ -1217,16 +1236,16 @@ kbd {
 .showcase-bar {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 16px 20px;
+  gap: 12px;
+  padding: 14px 18px;
   background: rgba(255, 255, 255, 0.02);
   border-top: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .showcase-logo {
   width: auto;
-  height: 24px;
-  max-width: 80px;
+  height: 22px;
+  max-width: 75px;
   object-fit: contain;
   filter: brightness(0) invert(1);
   opacity: 0.6;
@@ -1235,7 +1254,7 @@ kbd {
 
 .showcase-name {
   font-family: 'Inter', sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.7);
 }
@@ -1284,6 +1303,31 @@ kbd {
   z-index: 10;
 }
 
+/* --- CONTATO: Layout centrado como momento de fechamento editorial --- */
+.contact-centered {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.contact-centered .fold-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.contact-centered .fold-subheading {
+  justify-content: center;
+}
+
+/* Título monumental para a dobra Contato */
+.fold-title.mod--contato {
+  font-size: 52px;
+  line-height: 1.1;
+  letter-spacing: -1px;
+}
+
 .contact-body {
   display: flex;
   flex-direction: column;
@@ -1294,6 +1338,7 @@ kbd {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  width: 100%;
 }
 
 .contact-link {
@@ -1301,12 +1346,12 @@ kbd {
   flex-direction: column;
   gap: 4px;
   font-family: 'Inter', sans-serif;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 500;
   color: #ffffff;
   text-decoration: none;
   padding: 20px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   transition: color 0.3s ease;
 }
 
@@ -1319,17 +1364,19 @@ kbd {
   font-weight: 600;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .contact-social {
   display: flex;
-  gap: 14px;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 24px;
 }
 
 .social-btn {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -1346,8 +1393,8 @@ kbd {
 }
 
 .social-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   filter: brightness(10);
   opacity: 0.6;
 }
@@ -1374,7 +1421,12 @@ kbd {
   }
 
   .fold-title {
-    font-size: 26px;
+    font-size: 28px;
+  }
+
+  .fold-title.mod--contato {
+    font-size: 36px;
+    letter-spacing: -0.5px;
   }
 
   .crane-close-wrapper {
@@ -1406,7 +1458,7 @@ kbd {
   }
 
   .stat-number {
-    font-size: 36px;
+    font-size: 44px;
   }
 
   .contact-link {
@@ -1417,6 +1469,29 @@ kbd {
     overflow-x: auto;
     padding-bottom: 8px;
     flex-wrap: nowrap;
+  }
+
+  /* Clientes: stacking cards funciona em coluna no mobile */
+  .showcase-bar {
+    padding: 12px 14px;
+  }
+
+  .showcase-name {
+    font-size: 12px;
+  }
+
+  .showcase-logo {
+    height: 20px;
+  }
+
+  /* Contato centrado no mobile */
+  .contact-social {
+    justify-content: center;
+  }
+
+  .service-block:hover {
+    border-left-color: transparent;
+    padding-left: 0;
   }
 }
 

@@ -85,6 +85,26 @@ export function showFoldInstant(sectionId = 'team') {
   window.dispatchEvent(new CustomEvent('foldSlideUpComplete', { detail: { id: sectionId } }));
 }
 
+export function getCurrentActiveSectionId() {
+  return currentActiveSectionId;
+}
+
+export function switchFoldInstant(fromId, toId) {
+  currentActiveSectionId = toId;
+  const foldSections = document.querySelectorAll('.section.fold-section');
+  foldSections.forEach(sec => {
+    if (sec.id === toId) {
+      sec.scrollTop = 0;
+      gsap.set(sec, { y: '0%', opacity: 1 });
+    } else {
+      gsap.set(sec, { y: '100%', opacity: 0 });
+    }
+  });
+
+  if (triggerRevealFn) triggerRevealFn(toId);
+  window.dispatchEvent(new CustomEvent('foldSlideUpComplete', { detail: { id: toId } }));
+}
+
 export function hideFoldInstant(sectionId) {
   hideGlobalBgVideo();
 
@@ -128,10 +148,10 @@ export function setupTeamFold() {
 
     const subLine = sectionEl.querySelector('.fold-subheading__line');
     const subText = sectionEl.querySelector('.fold-subheading__text');
-    const headings = sectionEl.querySelectorAll('.fold-title, .service-title, .showcase-name');
+    const headings = sectionEl.querySelectorAll('.fold-title, .service-title');
     const paragraphs = sectionEl.querySelectorAll('.fold-p, .service-list li, .contact-link');
-    const images = sectionEl.querySelectorAll('.editorial-img, .showcase-img');
-    const cards = sectionEl.querySelectorAll('.stat-block, .client-showcase, .service-block, .social-btn, .tab-pill');
+    const images = sectionEl.querySelectorAll('.editorial-img');
+    const cards = sectionEl.querySelectorAll('.stat-block, .service-block, .social-btn, .tab-pill');
 
     // Configuração Inicial (antes de aparecer)
     if (subLine) gsap.set(subLine, { width: 0 });
@@ -236,7 +256,8 @@ export function setupTeamFold() {
     });
   });
 
-  // Galeria de Clientes agora é um CSS Grid (não precisa de drag/scroll em JS)
+  // Galeria de Clientes: scroll-driven 3D stacking cards
+  initClientesStackEffect();
 
   // 3. Botões Fechar / Voltar de todas as dobras com animação de subida do gancho
   const closeBtns = document.querySelectorAll(".fold-close-btn");
@@ -257,5 +278,102 @@ export function setupTeamFold() {
         window.dispatchEvent(new CustomEvent('calloutClose', { detail: { id: sectionId } }));
       }
     });
+  });
+}
+
+/**
+ * Scroll-driven 3D Stacking Effect para a Galeria de Clientes.
+ * Cards usam position:sticky e animam da direita com rotação 3D
+ * conforme o scroll interno da fold-section.
+ */
+function initClientesStackEffect() {
+  const section = document.getElementById('clientes');
+  if (!section) return;
+
+  const gallery = section.querySelector('.clients-gallery');
+  if (!gallery) return;
+
+  const cards = gallery.querySelectorAll('.client-showcase');
+  if (!cards.length) return;
+
+  const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+
+  // Parâmetros do efeito
+  const CARD_SCROLL_DISTANCE = isMobile ? 140 : 180; // px de scroll por card
+  const STICKY_TOP_BASE = isMobile ? 70 : 100;        // px do topo para o primeiro card
+  const STICKY_TOP_INCREMENT = isMobile ? 8 : 10;     // px de offset vertical entre cards no stack
+
+  // Configurar sticky positions e margins de scroll
+  cards.forEach((card, i) => {
+    card.style.position = 'sticky';
+    card.style.top = `${STICKY_TOP_BASE + i * STICKY_TOP_INCREMENT}px`;
+    card.style.zIndex = i + 1;
+    card.style.transformOrigin = 'left center';
+
+    // Margin bottom cria espaço de scroll entre os cards (exceto o último)
+    if (i < cards.length - 1) {
+      card.style.marginBottom = `${CARD_SCROLL_DISTANCE}px`;
+    }
+
+    // Estado inicial: primeiro card visível, demais ocultos à direita
+    if (i === 0) {
+      card.style.opacity = '1';
+      card.style.transform = 'perspective(1200px) translateX(0%) rotateY(0deg) scale(1)';
+    } else {
+      card.style.opacity = '0';
+      card.style.transform = 'perspective(1200px) translateX(80%) rotateY(-18deg) scale(0.9)';
+    }
+  });
+
+  // Handler de scroll otimizado com requestAnimationFrame
+  let ticking = false;
+
+  function updateCardsOnScroll() {
+    const scrollTop = section.scrollTop;
+
+    cards.forEach((card, i) => {
+      // Primeiro card sempre visível
+      if (i === 0) {
+        card.style.opacity = '1';
+        card.style.transform = 'perspective(1200px) translateX(0%) rotateY(0deg) scale(1)';
+        return;
+      }
+
+      // Calcular progresso de revelação deste card
+      const triggerStart = (i - 1) * CARD_SCROLL_DISTANCE + CARD_SCROLL_DISTANCE * 0.3;
+      const triggerEnd = triggerStart + CARD_SCROLL_DISTANCE;
+      const rawProgress = (scrollTop - triggerStart) / (triggerEnd - triggerStart);
+      const progress = Math.min(Math.max(rawProgress, 0), 1);
+
+      // Ease out cubic para desaceleração natural
+      const eased = 1 - Math.pow(1 - progress, 3);
+
+      // Transformações 3D: da direita com rotação até a posição de repouso
+      const translateX = (1 - eased) * 80;    // 80% → 0%
+      const rotateY = (1 - eased) * -18;       // -18deg → 0deg
+      const scale = 0.9 + eased * 0.1;         // 0.9 → 1.0
+      const opacity = eased;                    // 0 → 1
+
+      card.style.transform = `perspective(1200px) translateX(${translateX}%) rotateY(${rotateY}deg) scale(${scale})`;
+      card.style.opacity = opacity;
+    });
+
+    ticking = false;
+  }
+
+  section.addEventListener('scroll', () => {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(updateCardsOnScroll);
+    }
+  }, { passive: true });
+
+  // Listener para re-inicializar quando a dobra abre (scroll reseta para 0)
+  window.addEventListener('foldSlideUpComplete', (event) => {
+    const data = event.detail;
+    if (data && data.id === 'clientes') {
+      section.scrollTop = 0;
+      requestAnimationFrame(updateCardsOnScroll);
+    }
   });
 }
