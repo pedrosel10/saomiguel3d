@@ -1,5 +1,6 @@
 import { brickTransition } from '../effects/brickTransition.js';
 import { switchFoldInstant } from './setupTeamFold.js';
+import { updateScrollProgress, hideScrollProgress } from './scrollPullIndicator.js';
 
 const JOURNEY_SEQUENCE = ['team', 'servicos', 'clientes', 'contato'];
 
@@ -10,6 +11,14 @@ const foldIdMap = {
   'cases': 'clientes',
   'clientes': 'clientes',
   'contato': 'contato'
+};
+
+const foldNextLabels = {
+  null: 'Sobre a Equipe',
+  'team': 'Serviços',
+  'servicos': 'Clientes',
+  'clientes': 'Contato',
+  'contato': 'Tela Inicial'
 };
 
 export function setupScrollJourney(options = {}) {
@@ -23,25 +32,78 @@ export function setupScrollJourney(options = {}) {
   let isAtBottom = false;
   let bottomReachedTime = 0;
 
-  const HERO_WHEEL_THRESHOLD = 140;
-  const HERO_TOUCH_THRESHOLD = 90;
-  const SECTION_WHEEL_THRESHOLD = 110;
-  const SECTION_TOUCH_THRESHOLD = 70;
-  const REST_REQUIRED_MS = 300;
+  const HERO_WHEEL_THRESHOLD = 950;
+  const HERO_TOUCH_THRESHOLD = 120;
+  const SECTION_WHEEL_THRESHOLD = 850;
+  const SECTION_TOUCH_THRESHOLD = 90;
 
-  function resetAccumulator() {
-    accumulatedDelta = 0;
-    if (resetTimer) {
-      clearTimeout(resetTimer);
-      resetTimer = null;
+  let decayAnimationFrame = null;
+  let decayTimer = null;
+
+  function stopDecay() {
+    if (decayTimer) {
+      clearTimeout(decayTimer);
+      decayTimer = null;
+    }
+    if (decayAnimationFrame) {
+      cancelAnimationFrame(decayAnimationFrame);
+      decayAnimationFrame = null;
     }
   }
 
-  function scheduleReset() {
-    if (resetTimer) clearTimeout(resetTimer);
-    resetTimer = setTimeout(() => {
-      accumulatedDelta = 0;
-    }, 500);
+  function startDecay(currentThreshold) {
+    stopDecay();
+
+    function step() {
+      if (isTransitioning) {
+        decayAnimationFrame = null;
+        return;
+      }
+      if (accumulatedDelta <= 2) {
+        accumulatedDelta = 0;
+        hideScrollProgress();
+        decayAnimationFrame = null;
+        return;
+      }
+
+      // Recuo elástico da barrinha se soltar no meio (20% por frame)
+      accumulatedDelta *= 0.80;
+      notifyProgress(currentThreshold);
+
+      decayAnimationFrame = requestAnimationFrame(step);
+    }
+
+    decayAnimationFrame = requestAnimationFrame(step);
+  }
+
+  function scheduleDecay(currentThreshold) {
+    if (decayTimer) clearTimeout(decayTimer);
+    decayTimer = setTimeout(() => {
+      startDecay(currentThreshold);
+    }, 90);
+  }
+
+  function resetAccumulator() {
+    stopDecay();
+    accumulatedDelta = 0;
+    hideScrollProgress();
+  }
+
+  function notifyProgress(currentThreshold) {
+    if (brickTransition.animating) {
+      hideScrollProgress();
+      return;
+    }
+    const progress = Math.min(accumulatedDelta / currentThreshold, 1.0);
+    const isThresholdReached = progress >= 0.99;
+    const nextFoldLabel = foldNextLabels[activeFoldId] || 'Próxima seção';
+
+    updateScrollProgress({
+      progress,
+      isThresholdReached,
+      nextFoldLabel,
+      direction: activeFoldId === 'contato' ? 'up' : 'down'
+    });
   }
 
   function resetBottomState() {
@@ -84,8 +146,6 @@ export function setupScrollJourney(options = {}) {
 
   // Trata a transição sequencial entre dobras via Tijolos Azuis ou retorno para a tela inicial
   function triggerNextFold(currentId) {
-    if (isTransitioning) return;
-
     const currentIndex = JOURNEY_SEQUENCE.indexOf(currentId);
 
     // Se estiver no Contato (última dobra da jornada), voltar para a Tela Inicial Hero 3D!
@@ -102,12 +162,18 @@ export function setupScrollJourney(options = {}) {
     }
 
     const nextId = JOURNEY_SEQUENCE[currentIndex + 1];
+    if (!nextId) {
+      isTransitioning = false;
+      resetAccumulator();
+      return;
+    }
+
     isTransitioning = true;
     resetBottomState();
-    resetAccumulator();
 
     brickTransition.startTransition(
       () => {
+        resetAccumulator();
         switchFoldInstant(currentId, nextId);
         activeFoldId = nextId;
       },
@@ -143,26 +209,41 @@ export function setupScrollJourney(options = {}) {
 
     const deltaY = event.deltaY;
 
-    // Scroll para cima: ignora e reseta estado do fundo
+    // Scroll para cima: inicia recuo da barra se houver progresso acumulado
     if (deltaY <= 0) {
       resetBottomState();
-      resetAccumulator();
+      if (accumulatedDelta > 0) {
+        startDecay(activeFoldId === null ? HERO_WHEEL_THRESHOLD : SECTION_WHEEL_THRESHOLD);
+      } else {
+        resetAccumulator();
+      }
       return;
     }
 
+    // Fator de peso pesadíssimo na rolagem (0.45x)
+    const weightedDelta = deltaY * 0.45;
+
     // CASO 1: Tela Inicial Hero 3D (Dobra 1)
     if (activeFoldId === null) {
-      accumulatedDelta += deltaY;
-      scheduleReset();
+      stopDecay();
+      accumulatedDelta += weightedDelta;
+      notifyProgress(HERO_WHEEL_THRESHOLD);
 
       if (accumulatedDelta >= HERO_WHEEL_THRESHOLD) {
-        resetAccumulator();
+        stopDecay();
         isTransitioning = true;
-        activeFoldId = 'team';
-        if (typeof onStartJourney === 'function') {
-          onStartJourney('team');
-        }
+        accumulatedDelta = HERO_WHEEL_THRESHOLD;
+        notifyProgress(HERO_WHEEL_THRESHOLD);
+        setTimeout(() => {
+          activeFoldId = 'team';
+          if (typeof onStartJourney === 'function') {
+            onStartJourney('team');
+          }
+        }, 180);
+        return;
       }
+
+      scheduleDecay(HERO_WHEEL_THRESHOLD);
       return;
     }
 
@@ -174,35 +255,32 @@ export function setupScrollJourney(options = {}) {
 
     if (!currentlyAtBottom) {
       resetBottomState();
-      resetAccumulator();
+      if (accumulatedDelta > 0) {
+        startDecay(SECTION_WHEEL_THRESHOLD);
+      } else {
+        resetAccumulator();
+      }
       return;
     }
 
-    const scrollable = isSectionScrollable(sectionEl);
-    const now = Date.now();
-
-    // Se for uma seção com scrollbar, exige a primeira batida no fundo para descarte
-    if (scrollable) {
-      if (!isAtBottom) {
-        isAtBottom = true;
-        bottomReachedTime = now;
-        resetAccumulator();
-        return;
-      }
-
-      if (now - bottomReachedTime < REST_REQUIRED_MS) {
-        resetAccumulator();
-        return;
-      }
-    }
-
-    // Se for uma seção sem scrollbar (Contato) ou já tiver repousado no fundo:
-    accumulatedDelta += deltaY;
-    scheduleReset();
+    // Acumular tração ultra-pesada no fundo da dobra
+    stopDecay();
+    accumulatedDelta += weightedDelta;
+    notifyProgress(SECTION_WHEEL_THRESHOLD);
 
     if (accumulatedDelta >= SECTION_WHEEL_THRESHOLD) {
-      triggerNextFold(activeFoldId);
+      stopDecay();
+      isTransitioning = true;
+      accumulatedDelta = SECTION_WHEEL_THRESHOLD;
+      notifyProgress(SECTION_WHEEL_THRESHOLD);
+      const currentFold = activeFoldId;
+      setTimeout(() => {
+        triggerNextFold(currentFold);
+      }, 180);
+      return;
     }
+
+    scheduleDecay(SECTION_WHEEL_THRESHOLD);
   }, { passive: true });
 
   // Processamento de Gestos Touch (Mobile / Tablet)
@@ -224,25 +302,39 @@ export function setupScrollJourney(options = {}) {
 
     if (deltaY <= 0) {
       resetBottomState();
-      resetAccumulator();
+      if (accumulatedDelta > 0) {
+        startDecay(activeFoldId === null ? HERO_TOUCH_THRESHOLD : SECTION_TOUCH_THRESHOLD);
+      } else {
+        resetAccumulator();
+      }
       touchStartY = currentY;
       return;
     }
 
+    const weightedDelta = deltaY * 1.0;
+
     // CASO 1: Tela Inicial Hero 3D
     if (activeFoldId === null) {
-      accumulatedDelta += deltaY;
+      stopDecay();
+      accumulatedDelta += weightedDelta;
       touchStartY = currentY;
-      scheduleReset();
+      notifyProgress(HERO_TOUCH_THRESHOLD);
 
       if (accumulatedDelta >= HERO_TOUCH_THRESHOLD) {
-        resetAccumulator();
+        stopDecay();
         isTransitioning = true;
-        activeFoldId = 'team';
-        if (typeof onStartJourney === 'function') {
-          onStartJourney('team');
-        }
+        accumulatedDelta = HERO_TOUCH_THRESHOLD;
+        notifyProgress(HERO_TOUCH_THRESHOLD);
+        setTimeout(() => {
+          activeFoldId = 'team';
+          if (typeof onStartJourney === 'function') {
+            onStartJourney('team');
+          }
+        }, 180);
+        return;
       }
+
+      scheduleDecay(HERO_TOUCH_THRESHOLD);
       return;
     }
 
@@ -254,37 +346,33 @@ export function setupScrollJourney(options = {}) {
 
     if (!currentlyAtBottom) {
       resetBottomState();
-      resetAccumulator();
+      if (accumulatedDelta > 0) {
+        startDecay(SECTION_TOUCH_THRESHOLD);
+      } else {
+        resetAccumulator();
+      }
       touchStartY = currentY;
       return;
     }
 
-    const scrollable = isSectionScrollable(sectionEl);
-    const now = Date.now();
-
-    if (scrollable) {
-      if (!isAtBottom) {
-        isAtBottom = true;
-        bottomReachedTime = now;
-        resetAccumulator();
-        touchStartY = currentY;
-        return;
-      }
-
-      if (now - bottomReachedTime < REST_REQUIRED_MS) {
-        resetAccumulator();
-        touchStartY = currentY;
-        return;
-      }
-    }
-
-    accumulatedDelta += deltaY;
+    stopDecay();
+    accumulatedDelta += weightedDelta;
     touchStartY = currentY;
-    scheduleReset();
+    notifyProgress(SECTION_TOUCH_THRESHOLD);
 
     if (accumulatedDelta >= SECTION_TOUCH_THRESHOLD) {
-      triggerNextFold(activeFoldId);
+      stopDecay();
+      isTransitioning = true;
+      accumulatedDelta = SECTION_TOUCH_THRESHOLD;
+      notifyProgress(SECTION_TOUCH_THRESHOLD);
+      const currentFold = activeFoldId;
+      setTimeout(() => {
+        triggerNextFold(currentFold);
+      }, 180);
+      return;
     }
+
+    scheduleDecay(SECTION_TOUCH_THRESHOLD);
   }, { passive: true });
 
   return {

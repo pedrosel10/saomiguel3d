@@ -15,6 +15,7 @@ import { setupTeamGears } from './scene/setupTeamGears.js';
 import { brickTransition } from './effects/brickTransition.js';
 import { initTextDisintegration, animateDisintegrateHeroText, animateReintegrateHeroText } from './ui/setupTextDisintegration.js';
 import { setupScrollJourney } from './ui/scrollJourney.js';
+import { initScrollPullIndicator } from './ui/scrollPullIndicator.js';
 
 function init() {
   const canvas = document.getElementById('webgl-canvas');
@@ -167,6 +168,7 @@ function init() {
   });
 
   setupTeamFold();
+  initScrollPullIndicator();
 
   // 4b. Inicializar Navegação Guiada ("Jornada por Scroll")
   setupScrollJourney({

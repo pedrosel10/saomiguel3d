@@ -310,10 +310,8 @@ function initClientesStackEffect() {
     card.style.zIndex = i + 1;
     card.style.transformOrigin = 'left center';
 
-    // Margin bottom cria espaço de scroll entre os cards (exceto o último)
-    if (i < cards.length - 1) {
-      card.style.marginBottom = `${CARD_SCROLL_DISTANCE}px`;
-    }
+    // Margin bottom cria espaço de scroll entre os cards e para o último card revelar 100%
+    card.style.marginBottom = `${CARD_SCROLL_DISTANCE}px`;
 
     // Estado inicial: primeiro card visível, demais ocultos à direita
     if (i === 0) {
