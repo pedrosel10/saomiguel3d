@@ -16,6 +16,7 @@ import { brickTransition } from './effects/brickTransition.js';
 import { initTextDisintegration, animateDisintegrateHeroText, animateReintegrateHeroText } from './ui/setupTextDisintegration.js';
 import { setupScrollJourney } from './ui/scrollJourney.js';
 import { initScrollPullIndicator } from './ui/scrollPullIndicator.js';
+import { createAdaptiveDPR } from './scene/adaptiveDPR.js';
 
 function init() {
   const canvas = document.getElementById('webgl-canvas');
@@ -29,6 +30,9 @@ function init() {
 
   // 2b. Configurar Módulo Dedicado de Engrenagens da Equipe (Câmera Frontal Direta)
   const teamGears = setupTeamGears();
+
+  // 2c. Configurar Sistema de DPR Adaptativo para otimização automática de qualidade e performance
+  const adaptiveDPR = createAdaptiveDPR([renderer, teamGears.renderer]);
 
   // 2b. Pré-carregar fumaça 3D (texturas + renderer + warm-up GPU) durante o loading
   preloadSmoke();
@@ -446,7 +450,8 @@ function init() {
     (error) => {
       console.error('Falha ao inicializar o modelo:', error);
       ui.hideLoader();
-    }
+    },
+    renderer
   );
 
   // Animação 3D das engrenagens com varredura laser holográfica na entrada (sem faíscas)
@@ -643,15 +648,21 @@ function init() {
   window.addEventListener('resize', () => {
     updateResponsiveCamera(camera, scene, floor, shadowFloor);
 
-    const maxDPR = Math.min(window.devicePixelRatio || 1, 2.5);
-    renderer.setPixelRatio(maxDPR);
+    const dpr = adaptiveDPR.getCurrentDPR();
+    renderer.setPixelRatio(dpr);
+    if (teamGears && teamGears.renderer) {
+      teamGears.renderer.setPixelRatio(dpr);
+    }
   });
 
   // 7. Loop de Renderização (Animation Loop)
   const clock = new THREE.Clock();
 
-  function animate() {
+  function animate(now) {
     requestAnimationFrame(animate);
+
+    // Atualizar e avaliar o Sistema de DPR Adaptativo
+    adaptiveDPR.update(now);
 
     const delta = Math.min(clock.getDelta(), 0.05);
 

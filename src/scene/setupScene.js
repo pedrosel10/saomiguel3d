@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { loadTextureWithKTX2Fallback } from './setupKTX2.js';
 
 export function setupScene(canvas) {
   // 1. Cena com fundo limpo (sem chão/grid)
@@ -30,24 +31,26 @@ export function setupScene(canvas) {
     precision: 'highp'
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  const maxDPR = Math.min(window.devicePixelRatio || 1, 2.5);
-  renderer.setPixelRatio(maxDPR);
+  renderer.setPixelRatio(1.5); // Estado inicial = DPR 1.5 (gerenciado dinamicamente pelo adaptiveDPR)
   renderer.shadowMap.enabled = false;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.45;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.localClippingEnabled = true;
 
-  // 5. Chão com a textura_projeto.webp (em escala reduzida) e textura tátil de micro-granulação
+  // 5. Chão com a textura_projeto (suporte a KTX2/Basis com fallback automático para WebP)
   const noiseTexture = createNoiseBumpTexture();
 
-  const textureLoader = new THREE.TextureLoader();
-  const floorTexture = textureLoader.load('./textura_projeto.webp', (tex) => {
+  const floorTexture = new THREE.Texture();
+  loadTextureWithKTX2Fallback('./textura_projeto.webp', renderer, (tex) => {
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.wrapS = THREE.RepeatWrapping;
     tex.wrapT = THREE.RepeatWrapping;
-    tex.repeat.set(36, 36); // Escala perfeita para os detalhes dos desenhos do projeto
-    tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    tex.repeat.set(36, 36);
+    const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+    tex.anisotropy = Math.min(16, maxAnisotropy);
+    planeMat.map = tex;
+    planeMat.needsUpdate = true;
   });
 
   const planeGeo = new THREE.PlaneGeometry(600, 600); // Dimensão estendida para garantia de horizonte infinito

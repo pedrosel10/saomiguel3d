@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import { getKTX2Loader, loadTextureWithKTX2Fallback } from './setupKTX2.js';
 
-export function loadModel(scene, onProgress, onLoad, onError) {
+export function loadModel(scene, onProgress, onLoad, onError, renderer) {
   const loader = new GLTFLoader();
 
   // Configurar DRACOLoader para descompactar o modelo GLB com Draco local
@@ -10,27 +11,46 @@ export function loadModel(scene, onProgress, onLoad, onError) {
   dracoLoader.setDecoderPath('./draco/gltf/');
   loader.setDRACOLoader(dracoLoader);
 
-  // Carregar Texturas da Engrenagem segundo as especificações técnicas
-  const textureLoader = new THREE.TextureLoader();
+  // Configurar KTX2Loader para descompactação de GPU nativa Basis se o renderer for fornecido
+  if (renderer) {
+    const ktx2Loader = getKTX2Loader(renderer);
+    if (ktx2Loader) {
+      loader.setKTX2Loader(ktx2Loader);
+    }
+  }
 
-  const baseColorMap = textureLoader.load('./obj3D/logo_basecolor.jpg');
+  // Texturas PBR da Engrenagem com suporte a KTX2 e fallback automático para JPG
+  const baseColorMap = new THREE.Texture();
   baseColorMap.flipY = false;
-  baseColorMap.colorSpace = THREE.SRGBColorSpace;
+  loadTextureWithKTX2Fallback('./obj3D/logo_basecolor.jpg', renderer, (tex) => {
+    tex.flipY = false;
+    tex.colorSpace = THREE.SRGBColorSpace;
+    gearMaterial.map = tex;
+    gearMaterial.needsUpdate = true;
+  });
 
-  const normalMap = textureLoader.load('./obj3D/logo_normal.jpg');
+  const normalMap = new THREE.Texture();
   normalMap.flipY = false;
+  loadTextureWithKTX2Fallback('./obj3D/logo_normal.jpg', renderer, (tex) => {
+    tex.flipY = false;
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(3, 3);
+    gearMaterial.normalMap = tex;
+    gearMaterial.needsUpdate = true;
+  });
 
-  const rmMap = textureLoader.load('./obj3D/logo_rm.jpg');
+  const rmMap = new THREE.Texture();
   rmMap.flipY = false;
-
-  // Configuração de repetição para ranhuras finas de metal escovado (brushed metal)
-  normalMap.wrapS = THREE.RepeatWrapping;
-  normalMap.wrapT = THREE.RepeatWrapping;
-  normalMap.repeat.set(3, 3);
-
-  rmMap.wrapS = THREE.RepeatWrapping;
-  rmMap.wrapT = THREE.RepeatWrapping;
-  rmMap.repeat.set(3, 3);
+  loadTextureWithKTX2Fallback('./obj3D/logo_rm.jpg', renderer, (tex) => {
+    tex.flipY = false;
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(3, 3);
+    gearMaterial.roughnessMap = tex;
+    gearMaterial.metalnessMap = tex;
+    gearMaterial.needsUpdate = true;
+  });
 
   // Material PBR da Engrenagem com Metal Escuro Profundo e Aspereza Micro-Texturizada
   const gearMaterial = new THREE.MeshPhysicalMaterial({

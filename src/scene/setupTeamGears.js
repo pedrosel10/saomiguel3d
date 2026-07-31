@@ -28,10 +28,7 @@ export function setupTeamGears() {
     precision: 'highp'
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  const isMobileInitial = window.innerWidth <= 768 || ('ontouchstart' in window);
-  // Forçar DPR maior no mobile para atuar como supersampling e remover serrilhado
-  const maxDPR = isMobileInitial ? 2.5 : Math.min(window.devicePixelRatio || 1, 2.5);
-  renderer.setPixelRatio(maxDPR);
+  renderer.setPixelRatio(1.5); // Estado inicial = DPR 1.5 (gerenciado dinamicamente pelo adaptiveDPR)
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.45;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -566,6 +563,7 @@ export function setupTeamGears() {
         state.rightGear.position.x = targetRightX;
       }
       renderer.clear();
-    }
+    },
+    renderer
   };
 }
